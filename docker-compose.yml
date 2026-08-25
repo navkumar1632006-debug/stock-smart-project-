@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # StockSmart AI Main Application Container
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: stocksmartai/app:production
+    container_name: stocksmartai-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://stocksmart_user:secure_password_123@db:5432/stocksmart_db
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+
+  # Production Relational Database for Enterprise Operations
+  db:
+    image: postgres:15-alpine
+    container_name: stocksmartai-db
+    environment:
+      - POSTGRES_USER=stocksmart_user
+      - POSTGRES_PASSWORD=secure_password_123
+      - POSTGRES_DB=stocksmart_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stocksmart_user -d stocksmart_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  # High-performance Cache Server (Dynamic forecasts, inventory, ONDC orders)
+  redis:
+    image: redis:7-alpine
+    container_name: stocksmartai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

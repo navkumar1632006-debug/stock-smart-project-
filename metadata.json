@@ -1,0 +1,6 @@
+{
+  "name": "StockSmart AI",
+  "description": "AI-powered Hyperlocal Inventory Management, Demand Forecasting, Smart Expiry Management, and Retail Intelligence Platform.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
