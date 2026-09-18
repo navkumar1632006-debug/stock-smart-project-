@@ -1,0 +1,251 @@
+import React, { useState } from 'react';
+import { useInventory } from '../../context/InventoryContext';
+import { Product } from '../../types/retail';
+import { Type as FontIcon, Trash2, Download, Filter, Eye, AlertTriangle, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ProductDetailsDrawer } from './ProductDetailsDrawer';
+
+interface ProductTableProps {
+  onEditClick: (product: Product) => void;
+  userRole: string;
+}
+
+export const ProductTable: React.FC<ProductTableProps> = ({ onEditClick, userRole }) => {
+  const { products, isLoading, deleteProduct } = useInventory();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [stockFilter, setStockFilter] = useState('All');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          p.sku.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
+    
+    let matchesStock = true;
+    if (stockFilter === 'In Stock') matchesStock = p.stockLevel > p.reorderPoint;
+    if (stockFilter === 'Low Stock') matchesStock = p.stockLevel <= p.reorderPoint && p.stockLevel > 0;
+    if (stockFilter === 'Out of Stock') matchesStock = p.stockLevel === 0;
+
+    return matchesSearch && matchesCategory && matchesStock;
+  });
+
+  const downloadCSV = () => {
+    const headers = ['SKU', 'Name', 'Category', 'MRP', 'Cost', 'Stock Level', 'Reorder Point'];
+    const rows = filteredProducts.map(p => [
+      p.sku, p.name, p.category, p.price, p.cost, p.stockLevel, p.reorderPoint
+    ]);
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(e => e.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'stocksmart_inventory.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const getStockStatus = (p: Product) => {
+    if (p.stockLevel === 0) return { label: 'OUT OF STOCK', style: 'bg-rose-100 text-rose-700 border-rose-200', icon: AlertCircle };
+    if (p.stockLevel <= p.reorderPoint) return { label: 'LOW STOCK', style: 'bg-amber-100 text-amber-700 border-amber-200', icon: AlertTriangle };
+    return { label: 'IN STOCK', style: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle2 };
+  };
+
+  return (
+    <>
+      <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-6">
+        {/* Header & Main Actions */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Active Inventory Catalogue</h3>
+            <p className="text-[10px] font-mono text-slate-500/90 mt-1">Dual-channel stock reconciliation & ledger</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button 
+              onClick={downloadCSV} 
+              className="flex items-center space-x-1.5 px-4 py-2 bg-white border border-slate-200/50 hover:bg-slate-50 text-slate-700 rounded-xl text-[10px] font-semibold uppercase transition-colors shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Export CSV</span>
+            </button>
+            <span className="text-[9px] uppercase font-mono bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-xl font-bold border border-indigo-100">
+              {userRole} Access
+            </span>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-200/30">
+          <div className="md:col-span-4 relative">
+            <input
+              type="text"
+              placeholder="Search by name or SKU..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2.5 bg-white border border-slate-200/50 shadow-sm rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:border-indigo-500 transition-colors"
+            />
+          </div>
+          
+          <div className="md:col-span-4 flex items-center space-x-2">
+            <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full px-3 py-2.5 bg-white border border-slate-200/50 shadow-sm rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:border-indigo-500 cursor-pointer"
+            >
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+
+          <div className="md:col-span-4 flex items-center space-x-2">
+            <select
+              value={stockFilter}
+              onChange={(e) => setStockFilter(e.target.value)}
+              className="w-full px-3 py-2.5 bg-white border border-slate-200/50 shadow-sm rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:border-indigo-500 cursor-pointer"
+            >
+              <option value="All">All Stock Levels</option>
+              <option value="In Stock">In Stock (Healthy)</option>
+              <option value="Low Stock">Low Stock (Warning)</option>
+              <option value="Out of Stock">Out of Stock (Critical)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Results Info */}
+        <div className="text-[10px] font-mono text-slate-500/90 flex items-center justify-between">
+          <span>Showing {filteredProducts.length} items</span>
+          {stockFilter !== 'All' && <span className="text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">Filtered: {stockFilter}</span>}
+        </div>
+
+        {/* Desktop Table */}
+        <div className="overflow-x-auto rounded-xl border border-slate-200/30 bg-white shadow-sm hidden md:block">
+          <table className="w-full text-left border-collapse font-mono text-[11px]">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200/50 text-slate-500/90 text-[9px] uppercase font-bold tracking-wider">
+                <th className="py-3 px-4">Product Info</th>
+                <th className="py-3 px-4 text-right">M.R.P</th>
+                <th className="py-3 px-4 text-right">Cost</th>
+                <th className="py-3 px-4 text-center">Status</th>
+                <th className="py-3 px-4 text-right">In Stock</th>
+                <th className="py-3 px-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-12 text-slate-500/90 animate-pulse">
+                    Loading inventory catalog...
+                  </td>
+                </tr>
+              ) : filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-12 text-slate-500/90 flex flex-col items-center">
+                    <Filter className="w-8 h-8 mb-3 opacity-20" />
+                    No products found matching active filters.
+                  </td>
+                </tr>
+              ) : (
+                filteredProducts.map((p) => {
+                  const status = getStockStatus(p);
+                  const StatusIcon = status.icon;
+                  return (
+                    <tr key={p.id} className="hover:bg-indigo-50/30 transition-colors group">
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col">
+                          <span className="font-sans font-bold text-slate-900 text-xs">{p.name}</span>
+                          <span className="text-[9px] text-slate-400 font-mono mt-0.5">{p.sku} • {p.category}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right font-medium text-slate-900">₹{p.price}</td>
+                      <td className="py-3 px-4 text-right text-slate-500/90">₹{p.cost}</td>
+                      <td className="py-3 px-4 text-center">
+                        <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-md border text-[8px] font-bold tracking-wider ${status.style}`}>
+                          <StatusIcon className="w-3 h-3" />
+                          <span>{status.label}</span>
+                        </span>
+                      </td>
+                      <td className={`py-3 px-4 text-right font-extrabold text-sm ${p.stockLevel === 0 ? 'text-rose-600' : p.stockLevel <= p.reorderPoint ? 'text-amber-600' : 'text-slate-800'}`}>
+                        {p.stockLevel}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => setSelectedProduct(p)} className="p-1.5 hover:bg-slate-200 rounded-lg text-slate-600 transition" title="View Details">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => onEditClick(p)} className="p-1.5 hover:bg-indigo-100 rounded-lg text-indigo-600 transition" title="Edit Product">
+                            <FontIcon className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => deleteProduct(p.id, p.name)} className="p-1.5 hover:bg-rose-100 rounded-lg text-rose-600 transition" title="Delete Product">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile View */}
+        <div className="md:hidden space-y-3">
+          {isLoading ? (
+            <div className="text-center py-10 text-slate-500/90 text-xs font-mono">Loading inventory...</div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-10 text-slate-500/90 text-xs font-mono">No products found.</div>
+          ) : (
+            filteredProducts.map((p) => {
+              const status = getStockStatus(p);
+              return (
+                <div key={p.id} className="p-4 bg-white shadow-sm border border-slate-200/70 rounded-2xl space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm">{p.name}</div>
+                      <div className="text-[10px] text-slate-500/90 font-mono mt-0.5">{p.sku} • {p.category}</div>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded border text-[8px] font-bold tracking-wider ${status.style}`}>
+                      {status.label}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-end bg-slate-50 p-2 rounded-xl border border-slate-100">
+                    <div>
+                      <div className="text-[10px] text-slate-500/90 font-mono">Cost: ₹{p.cost}</div>
+                      <div className="text-[11px] text-slate-900 font-bold font-mono">MRP: ₹{p.price}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[9px] text-slate-500/90 font-mono">Min: {p.reorderPoint}</div>
+                      <div className={`font-black text-lg ${p.stockLevel === 0 ? 'text-rose-600' : p.stockLevel <= p.reorderPoint ? 'text-amber-600' : 'text-emerald-600'}`}>
+                        {p.stockLevel}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 pt-1">
+                    <button onClick={() => setSelectedProduct(p)} className="flex-1 py-2 text-[10px] font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition">
+                      View
+                    </button>
+                    <button onClick={() => onEditClick(p)} className="flex-1 py-2 text-[10px] font-bold text-indigo-700 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition">
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {selectedProduct && (
+        <ProductDetailsDrawer product={selectedProduct} onClose={() => setSelectedProduct(null)} />
+      )}
+    </>
+  );
+};

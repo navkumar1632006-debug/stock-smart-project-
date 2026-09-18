@@ -1,0 +1,4 @@
+mobile/
+.gemini/
+node_modules/
+dist/
