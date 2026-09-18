@@ -161,13 +161,6 @@ export function BarcodeScanner({ products, onScanResult, onClose }: BarcodeScann
                   Align the barcode within the frame. Scanning is automatic.
                 </p>
               )}
-              {/* Fallback button for simulated environments */}
-              <button 
-                onClick={() => handleScanSuccess('MILK-500')}
-                className="mt-6 text-[10px] text-slate-400 underline uppercase tracking-wider font-medium"
-              >
-                Mock Scan (MILK-500)
-              </button>
             </div>
           ) : (
             <div className="w-full animate-fade-in flex flex-col items-center">

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Product, InventoryBatch, SaleRecord } from '../types/retail';
+import { inventoryIntelligenceService, RiskAssessment } from '../lib/services/inventoryIntelligenceService';
 import {
   BarChart,
   Bar,
@@ -23,50 +24,22 @@ interface SupplyChainAnalyticsProps {
   salesLogs: SaleRecord[];
 }
 
-interface RiskAssessment {
-  sku: string;
-  riskLevel: 'Critical' | 'High' | 'Medium';
-  analysis: string;
-  recommendation: string;
-}
-
 export function SupplyChainAnalytics({ products = [], batches = [], salesLogs = [] }: SupplyChainAnalyticsProps) {
   const [riskData, setRiskData] = useState<RiskAssessment[]>([]);
   const [isLoadingRisk, setIsLoadingRisk] = useState(false);
-  const [riskError, setRiskError] = useState<string | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
-    async function fetchRiskAssessment() {
-      setIsLoadingRisk(true);
-      setRiskError(null);
-      try {
-        const response = await fetch('/api/supply-risk');
-        if (!response.ok) {
-          throw new Error('Failed to fetch supply risk data');
-        }
-        const data = await response.json();
-        if (isMounted) {
-          setRiskData(data.riskAssessments || []);
-        }
-      } catch (err: any) {
-        if (isMounted) {
-          setRiskError(err.message || 'An error occurred while fetching risk assessment');
-          
-          // Offline Fallback for UI if API fails
-          setRiskData([
-             { sku: 'TEST-SKU-1', riskLevel: 'Critical', analysis: 'API is currently offline. Simulating local fallback.', recommendation: 'Please check your connection or try again later.' }
-          ]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingRisk(false);
-        }
-      }
+    setIsLoadingRisk(true);
+    try {
+      const risks = inventoryIntelligenceService.getRiskAssessments(products, salesLogs, batches);
+      setRiskData(risks);
+    } catch (err: any) {
+      console.error('Failed to generate risk assessments', err);
+      setRiskData([]);
+    } finally {
+      setIsLoadingRisk(false);
     }
-    fetchRiskAssessment();
-    return () => { isMounted = false; };
-  }, []);
+  }, [products, salesLogs, batches]);
 
   // 1. Inventory vs Reorder Point
   const inventoryData = useMemo(() => {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Camera, FileText, Mic, AlertCircle, CheckCircle2, Upload, Search, Volume2, Sparkles, Languages, HelpCircle } from 'lucide-react';
 import { Product } from '../types/retail';
-import { MobileBridge } from '../lib/mobileBridge';
+// Mobile Bridge removed
 
 interface HardwareSimulatorsProps {
   products: Product[];
@@ -29,15 +29,14 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
 
   // --- 1. Camera Shelf Scanner Logic ---
   const handleScanShelf = async () => {
-    const hasPermission = await MobileBridge.checkCameraPermission();
+    const hasPermission = true;
     if (!hasPermission) {
-      await MobileBridge.showToast("Camera permission denied. Cannot scan shelf.", "long");
       return;
     }
 
     setIsScanningShelf(true);
     setShelfScanResult(null);
-    await MobileBridge.triggerHapticFeedback('light');
+    
     
     // Simulate computer vision latency
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -53,8 +52,8 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
 - Detected Low Stock in Section B (Dairy): Mother Dairy Paneer is down to 18 packs.
 - Generated Auto-Reorder recommendation: 40 units of Atta added to ONDC draft!`
     );
-    await MobileBridge.triggerHapticFeedback('heavy');
-    await MobileBridge.showToast("Shelf Scan Complete: Low stock alert!", "short");
+    
+    
     onTriggerRefresh();
   };
 
@@ -63,7 +62,7 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
     if (!e.target.files || e.target.files.length === 0) return;
     setIsScanningInvoice(true);
     setInvoiceScanResult(null);
-    await MobileBridge.triggerHapticFeedback('light');
+    
 
     // Simulate invoice OCR model extract (XGBoost/LSTM key-value parser)
     await new Promise((resolve) => setTimeout(resolve, 2200));
@@ -102,14 +101,14 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
       if (res.ok) {
         setIsScanningInvoice(false);
         setInvoiceScanResult(invoiceData);
-        await MobileBridge.triggerHapticFeedback('medium');
-        await MobileBridge.showToast("Invoice OCR success! Added to catalog.", "short");
+        
+        
         onTriggerRefresh();
       } else {
         throw new Error("Failed to register parsed invoice catalog entry.");
       }
     } catch (e: any) {
-      await MobileBridge.showToast(`OCR registration failed: ${e.message}`, "long");
+      
       setIsScanningInvoice(false);
     }
   };
@@ -147,7 +146,7 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
     }
 
     onFilterProducts(matched);
-    MobileBridge.triggerHapticFeedback('light');
+    
 
     // Speak back the response if browser synthesis is active
     if ('speechSynthesis' in window) {
@@ -160,9 +159,7 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
 
   const startVoiceListening = async () => {
     setIsListening(true);
-    setVoiceSpeechFeedback(null);
-    await MobileBridge.triggerHapticFeedback('light');
-    await MobileBridge.showToast("Listening to voice query...", "short");
+    // Haptic feedback removed in Phase 3C
     
     // Check for native browser Speech Recognition
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -175,7 +172,7 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
       recognition.onresult = async (event: any) => {
         const text = event.results[0][0].transcript;
         setVoiceQuery(text);
-        await MobileBridge.triggerHapticFeedback('medium');
+        
         handleVoiceSearch(text);
       };
 
@@ -189,20 +186,8 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
 
       recognition.start();
     } else {
-      // Mock Speech recognition if browser blocks it or iframe limits permissions
-      setTimeout(async () => {
-        const mockQueries = [
-          "red oil bottle",
-          "cheap rice",
-          "big biscuit",
-          "How much milk is left?"
-        ];
-        const randomQuery = mockQueries[Math.floor(Math.random() * mockQueries.length)];
-        setVoiceQuery(randomQuery);
-        setIsListening(false);
-        await MobileBridge.triggerHapticFeedback('medium');
-        handleVoiceSearch(randomQuery);
-      }, 1500);
+      setIsListening(false);
+      alert("Native Speech Recognition is not supported or permitted in this browser.");
     }
   };
 

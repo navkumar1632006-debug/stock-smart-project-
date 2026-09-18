@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Tag, ShoppingCart, Percent, Compass, Filter, Sparkles, CheckCircle2 } from 'lucide-react';
-import { MobileBridge } from '../lib/mobileBridge';
 
 interface HyperlocalMarketplaceProps {
   products: any[];
@@ -20,24 +19,18 @@ export const HyperlocalMarketplace: React.FC<HyperlocalMarketplaceProps> = ({
   const [gpsCoords, setGpsCoords] = useState<{ latitude: number; longitude: number; accuracy: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
 
-  // Auto-initialize coordinates from Capacitor or high-fidelity simulation on mount
+  // Auto-initialize coordinates
   useEffect(() => {
     handleGpsSync(true);
   }, []);
 
   const handleGpsSync = async (silent = false) => {
     if (!silent) {
-      await MobileBridge.triggerHapticFeedback('light');
       setIsLocating(true);
     }
-    const coords = await MobileBridge.getCurrentLocation();
-    if (coords) {
-      setGpsCoords(coords);
-      if (!silent) {
-        await MobileBridge.triggerHapticFeedback('heavy');
-        await MobileBridge.showToast(`GPS Position Sync Complete! (${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)})`, 'short');
-      }
-    }
+    // Simulate coords
+    const coords = { latitude: 28.6139, longitude: 77.2090, accuracy: 10 };
+    setGpsCoords(coords);
     if (!silent) {
       setIsLocating(false);
     }
@@ -67,9 +60,10 @@ export const HyperlocalMarketplace: React.FC<HyperlocalMarketplaceProps> = ({
         // Distribute batches randomly across 4 nearby merchants
         stores.forEach((store, idx) => {
           // Keep কৃষ্ণ Kirana as the main owner of original batches, others simulate local competitors
-          if (idx > 0 && Math.random() > 0.4) return; 
+          // Store randomization removed in Phase 3C
+          if (idx > 0) return; 
 
-          const randomQty = idx === 0 ? b.currentQuantity : Math.floor(Math.random() * 8) + 2;
+          const randomQty = b.currentQuantity;
           
           items.push({
             id: `${b.id}-MKT-${idx}`,

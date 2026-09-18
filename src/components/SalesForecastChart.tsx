@@ -77,72 +77,8 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
       const prod = products.find(p => p.id === selectedProductId);
       
       if (pForecast && prod) {
-        // Mock a 7-day future prediction timeline
-        const lastDate = historical.length > 0 
-          ? new Date(historical[historical.length - 1].date) 
-          : new Date();
-
-        // Start forecast curve from the last actual value to make the transition smooth
-        const lastActualVal = historical.length > 0
-          ? (chartType === 'revenue' ? historical[historical.length - 1].revenue : historical[historical.length - 1].actualSales)
-          : 0;
-
-        chartData[chartData.length - 1].forecast = lastActualVal;
-
-        for (let i = 1; i <= 7; i++) {
-          const nextDate = new Date(lastDate);
-          nextDate.setDate(lastDate.getDate() + i);
-          const nextDateStr = nextDate.toISOString().split('T')[0];
-
-          // Distribute forecasted demand over 7 days with minor noise
-          const dayFactor = i === 5 || i === 6 ? 1.4 : 0.8; // weekend spikes
-          const dailyUnits = (pForecast.predictedDemandNext7d / 7) * dayFactor;
-          const predictedVal = chartType === 'revenue' 
-            ? Math.round(dailyUnits * prod.price) 
-            : Math.round(dailyUnits);
-
-          chartData.push({
-            date: nextDateStr,
-            actual: null,
-            forecast: predictedVal,
-            type: 'AI Predicted'
-          });
-        }
-      }
-    } else {
-      // General overall forecast summation (all products)
-      const lastDate = historical.length > 0 
-        ? new Date(historical[historical.length - 1].date) 
-        : new Date();
-
-      const lastActualVal = historical.length > 0
-        ? (chartType === 'revenue' ? historical[historical.length - 1].revenue : historical[historical.length - 1].actualSales)
-        : 0;
-
-      if (chartData.length > 0) {
-        chartData[chartData.length - 1].forecast = lastActualVal;
-      }
-
-      for (let i = 1; i <= 7; i++) {
-        const nextDate = new Date(lastDate);
-        nextDate.setDate(lastDate.getDate() + i);
-        const nextDateStr = nextDate.toISOString().split('T')[0];
-
-        // Sum across all forecasts
-        const totalForecastUnits = forecastData.reduce((sum, f) => {
-          const prod = products.find(p => p.id === f.productId);
-          const dailyUnits = (f.predictedDemandNext7d / 7);
-          return sum + (chartType === 'revenue' && prod ? dailyUnits * prod.price : dailyUnits);
-        }, 0);
-
-        const dayFactor = i === 5 || i === 6 ? 1.3 : 0.85; // weekend multiplier
-
-        chartData.push({
-          date: nextDateStr,
-          actual: null,
-          forecast: Math.round(totalForecastUnits * dayFactor),
-          type: 'AI Predicted'
-        });
+        // The mock 7-day future timeline generator has been removed.
+        // Real daily forecast arrays should be provided by the backend.
       }
     }
 
@@ -186,46 +122,14 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
     : null;
 
   // Derive model breakdowns safely, using proportionate percentages if exact fields are missing
-  const totalEnsembleUnits = currentForecast?.predictedDemandNext7d || 30;
+  const totalEnsembleUnits = currentForecast?.predictedDemandNext7d || 0;
   const models = [
     {
-      id: 'prophet',
-      name: 'Prophet (Seasonality & Holidays)',
-      val: currentForecast?.prophetForecast ?? Math.round(totalEnsembleUnits * 0.95),
-      weight: '25%',
-      desc: 'Decomposes trend, weekly residential seasonality (weekend multiplier), and local holiday surges.',
-      status: 'Active'
-    },
-    {
-      id: 'xgboost',
-      name: 'XGBoost (Elasticity & Features)',
-      val: currentForecast?.xgboostForecast ?? Math.round(totalEnsembleUnits * 1.05),
-      weight: '25%',
-      desc: 'Models tabular interactions, capturing product category velocities and pricing discount responsiveness.',
-      status: 'Active'
-    },
-    {
-      id: 'catboost',
-      name: 'CatBoost (Category Momentum)',
-      val: currentForecast?.catboostForecast ?? Math.round(totalEnsembleUnits * 1.0),
-      weight: '15%',
-      desc: 'Handles target categorical encoding, tracking rolling weekly trend momentum of neighboring products.',
-      status: 'Stable'
-    },
-    {
       id: 'lightgbm',
-      name: 'LightGBM (Leaf-wise Stock Splits)',
-      val: currentForecast?.lightgbmForecast ?? Math.round(totalEnsembleUnits * 0.9),
-      weight: '15%',
-      desc: 'Utilizes rapid leaf-wise decision splits on local stock levels, reorder alerts, and supplier buffer flags.',
-      status: 'Stable'
-    },
-    {
-      id: 'lstm',
-      name: 'LSTM (Short-term Recurrent Lag)',
-      val: currentForecast?.lstmForecast ?? Math.round(totalEnsembleUnits * 1.1),
-      weight: '20%',
-      desc: 'A recurrent neural model tracking short-term sequence lags and acceleration/deceleration parameters.',
+      name: 'LightGBM (Time-Series Cross-Validated)',
+      val: currentForecast?.predictedDemandNext7d || 0,
+      weight: '100%',
+      desc: 'Tree-based model optimized for sparse retail data, handling holiday effects and categorical features.',
       status: 'Active'
     }
   ];
@@ -346,141 +250,139 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
       </div>
 
       {/* Explainable AI Model Breakdown & Experienced Shopkeeper Thoughts Section */}
-      {selectedProductId !== 'ALL' && currentForecast && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-4 border-t border-slate-200/30">
-          
-          {/* Column 1: Model Ensemble Vote Matrix (XAI) */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Layers className="w-4 h-4 text-emerald-600" />
-                <h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">Weighted Ensemble Model Outputs</h4>
-              </div>
-              <span className="text-[9px] text-slate-400 font-mono">Aggregation Factor: 100%</span>
+      {selectedProductId !== 'ALL' && (
+        <div className="grid grid-cols-1 gap-6 pt-4 border-t border-slate-200/30">
+          {salesData.filter(s => s.productId === selectedProductId).length < 10 ? (
+            <div className="flex flex-col items-center justify-center p-8 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+              <ShieldAlert className="w-8 h-8 text-slate-400 mb-3" />
+              <h4 className="text-sm font-semibold text-slate-700">Insufficient Historical Data</h4>
+              <p className="text-[11px] text-slate-500 text-center max-w-sm mt-2">
+                The LightGBM forecasting model requires at least 10 historical sales transactions to generate a statistically significant demand prediction. Keep selling this product to unlock AI insights.
+              </p>
             </div>
-
-            <div className="space-y-3">
-              {models.map(m => {
-                const maxVal = Math.max(...models.map(x => x.val));
-                const percentage = maxVal > 0 ? (m.val / maxVal) * 100 : 0;
-                
-                return (
-                  <div 
-                    key={m.id} 
-                    className="p-3 bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-2xl relative overflow-hidden transition-all hover:border-slate-200/50"
-                    onMouseEnter={() => setHoveredModel(m.id)}
-                    onMouseLeave={() => setHoveredModel(null)}
-                  >
-                    <div className="flex items-center justify-between text-[10px] font-mono mb-1.5 relative z-10">
-                      <span className="font-medium text-slate-700">{m.name}</span>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-slate-400 text-[8.5px]">Weight: {m.weight}</span>
-                        <span className="text-emerald-600 font-semibold">{m.val} units</span>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar background */}
-                    <div className="w-full h-2 bg-white rounded-full overflow-hidden relative z-10">
-                      <div 
-                        className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full transition-all duration-500"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-
-                    {/* Popover / Expandable explanation on hover or focus */}
-                    {(hoveredModel === m.id) && (
-                      <div className="text-[9px] text-slate-500/90 font-sans mt-2 leading-relaxed bg-slate-50/80 p-2 rounded-xl border border-slate-200/50 transition-all">
-                        {m.desc}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Column 2: Confidence Dials and Veteran Advice */}
-          <div className="lg:col-span-5 space-y-4">
-            {/* Confidence Dial Badge Card */}
-            <div className="p-6 bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-3xl flex items-center justify-between">
-              <div className="space-y-1">
-                <span className="text-[9px] font-mono uppercase tracking-wider text-slate-400 block">Forecast Trust Metric</span>
-                <span className="text-sm font-semibold text-slate-900 block">Confidence Index</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className={`px-3 py-2 rounded-2xl text-center font-mono ${getConfidenceColor(currentForecast.confidenceScore)}`}>
-                  <span className="text-xl font-semibold block leading-none">{currentForecast.confidenceScore}%</span>
-                  <span className="text-[8px] font-medium block uppercase tracking-tight mt-0.5">Weighted</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Experienced Shopkeeper Advisory */}
-            <div className="bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-200 rounded-3xl p-6 shadow-lg relative overflow-hidden">
-              {/* Background accent */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
-              
-              <div className="flex items-start space-x-3">
-                <Sparkles className="w-5 h-5 text-amber-600 mt-0.5 animate-pulse flex-shrink-0" />
-                <div className="space-y-2">
+          ) : currentForecast ? (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Column 1: Model Ensemble Vote Matrix (XAI) */}
+              <div className="lg:col-span-7 space-y-4">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <h4 className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">AI Store Manager Thoughts</h4>
-                    <span className="text-[7.5px] font-mono bg-amber-100 text-amber-600 px-1 py-0.5 rounded font-semibold uppercase">
-                      Kirana Wisdom
-                    </span>
+                    <Layers className="w-4 h-4 text-emerald-600" />
+                    <h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">Weighted Ensemble Model Outputs</h4>
                   </div>
-                  
-                  {currentForecast.festivalFactor && (
-                    <div className="flex items-start space-x-1.5 bg-slate-50/60 p-2 rounded-2xl border border-slate-200/30">
-                      {holidayMultiplierImpact(currentProd?.category || '') >= 1.05 ? (
-                        <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                      ) : (
-                        <TrendingDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
-                      )}
-                      <p className="text-[9.5px] text-amber-600 font-mono leading-tight">
-                        <strong className="text-amber-200">Seasonality Match:</strong> {currentForecast.festivalFactor}
-                      </p>
-                    </div>
-                  )}
+                  <span className="text-[9px] text-slate-400 font-mono">Aggregation Factor: 100%</span>
+                </div>
 
-                  <p className="text-[11.5px] text-slate-800 leading-relaxed font-sans font-medium italic">
-                    "{currentForecast.insight}"
-                  </p>
-                  
-                  <div className="flex items-center justify-between text-[8px] font-mono text-amber-600/60 pt-1">
-                    <span>Evaluated variables: Margin, Price Elasticity, Volatility</span>
-                    <span>Confidence: Verified</span>
-                  </div>
+                <div className="space-y-3">
+                  {models.map(m => {
+                    const maxVal = Math.max(...models.map(x => x.val));
+                    const percentage = maxVal > 0 ? (m.val / maxVal) * 100 : 0;
+                    
+                    return (
+                      <div 
+                        key={m.id} 
+                        className="p-3 bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-2xl relative overflow-hidden transition-all hover:border-slate-200/50"
+                        onMouseEnter={() => setHoveredModel(m.id)}
+                        onMouseLeave={() => setHoveredModel(null)}
+                      >
+                        <div className="flex items-center justify-between text-[10px] font-mono mb-1.5 relative z-10">
+                          <span className="font-medium text-slate-700">{m.name}</span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-slate-400 text-[8.5px]">Weight: {m.weight}</span>
+                            <span className="text-emerald-600 font-semibold">{m.val} units</span>
+                          </div>
+                        </div>
+
+                        {/* Progress Bar background */}
+                        <div className="w-full h-2 bg-white rounded-full overflow-hidden relative z-10">
+                          <div 
+                            className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+
+                        {/* Popover / Expandable explanation on hover or focus */}
+                        {(hoveredModel === m.id) && (
+                          <div className="text-[9px] text-slate-500/90 font-sans mt-2 leading-relaxed bg-slate-50/80 p-2 rounded-xl border border-slate-200/50 transition-all">
+                            {m.desc}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
+
+              {/* Column 2: Confidence Dials and Veteran Advice */}
+              <div className="lg:col-span-5 space-y-4">
+                {/* Confidence Dial Badge Card */}
+                <div className="p-6 bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-3xl flex items-center justify-between">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-mono uppercase tracking-wider text-slate-400 block">Forecast Trust Metric</span>
+                    <span className="text-sm font-semibold text-slate-900 block">Confidence Index</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className={`px-3 py-2 rounded-2xl text-center font-mono ${getConfidenceColor(currentForecast.confidenceScore)}`}>
+                      <span className="text-xl font-semibold block leading-none">{currentForecast.confidenceScore}%</span>
+                      <span className="text-[8px] font-medium block uppercase tracking-tight mt-0.5">Weighted</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Experienced Shopkeeper Advisory */}
+                <div className="bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-200 rounded-3xl p-6 shadow-lg relative overflow-hidden">
+                  {/* Background accent */}
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
+                  
+                  <div className="flex items-start space-x-3">
+                    <Sparkles className="w-5 h-5 text-amber-600 mt-0.5 animate-pulse flex-shrink-0" />
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <h4 className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">AI Store Manager Thoughts</h4>
+                        <span className="text-[7.5px] font-mono bg-amber-100 text-amber-600 px-1 py-0.5 rounded font-semibold uppercase">
+                          Kirana Wisdom
+                        </span>
+                      </div>
+                      
+                      {currentForecast.festivalFactor && (
+                        <div className="flex items-start space-x-1.5 bg-slate-50/60 p-2 rounded-2xl border border-slate-200/30">
+                          {holidayMultiplierImpact(currentProd?.category || '') >= 1.05 ? (
+                            <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                          ) : (
+                            <TrendingDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
+                          )}
+                          <p className="text-[9.5px] text-amber-600 font-mono leading-tight">
+                            <strong className="text-amber-200">Seasonality Match:</strong> {currentForecast.festivalFactor}
+                          </p>
+                        </div>
+                      )}
+
+                      <p className="text-[11.5px] text-slate-800 leading-relaxed font-sans font-medium italic">
+                        "{currentForecast.insight}"
+                      </p>
+                      
+                      <div className="flex items-center justify-between text-[8px] font-mono text-amber-600/60 pt-1">
+                        <span>Evaluated variables: Margin, Price Elasticity, Volatility</span>
+                        <span>Confidence: Verified</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
-
-          </div>
-
+          ) : null}
         </div>
       )}
 
       {/* Overview correlative analysis when ALL is selected */}
       {selectedProductId === 'ALL' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-200/30">
-          <div className="bg-indigo-500/5 border border-indigo-200 rounded-2xl p-6 flex items-start space-x-3">
-            <AlertCircle className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
-            <div className="space-y-1">
-              <h4 className="text-xs font-medium text-indigo-600">Ensemble Optimization Pipeline</h4>
-              <p className="text-[11px] text-slate-700 leading-relaxed">
-                Our operations grid synthesizes **Prophet** (seasonality), **XGBoost/CatBoost** (features & elasticity), **LightGBM** (reorder leaf states), and **LSTM** (momentum) to prevent cash traps. Select a specific product in the menu above to audit its model-level contributions and confidence weights.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-emerald-500/5 border border-emerald-200 rounded-2xl p-6 flex items-start space-x-3">
-            <Sparkles className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-            <div className="space-y-1">
-              <h4 className="text-xs font-medium text-emerald-600">Kirana Basket & Spoilage Auditing</h4>
-              <p className="text-[11px] text-slate-700 leading-relaxed">
-                The neural system has computed a high cross-sell confidence score for **Dairy & Bakery** categories. When Dairy clearance discounts trigger on nearby expiry batches, shelf placement should pair bread packets directly adjacent to drive high-margin bulk transactions.
-              </p>
-            </div>
+        <div className="grid grid-cols-1 gap-6 pt-4 border-t border-slate-200/30">
+          <div className="flex flex-col items-center justify-center p-8 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+            <ShieldAlert className="w-8 h-8 text-slate-400 mb-3" />
+            <h4 className="text-sm font-semibold text-slate-700">Store-wide Analysis Paused</h4>
+            <p className="text-[11px] text-slate-500 text-center max-w-sm mt-2">
+              Aggregated store-wide machine learning predictions require significantly more transactional data across multiple categories. Please continue to record daily sales.
+            </p>
           </div>
         </div>
       )}

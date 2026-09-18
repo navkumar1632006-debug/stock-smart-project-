@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, CheckCircle2, FileText, IndianRupee, Truck, ShieldAlert, Loader } from 'lucide-react';
+import { Product, SaleRecord } from '../types/retail';
+import { inventoryIntelligenceService, ReorderPO } from '../lib/services/inventoryIntelligenceService';
+import { inventoryService } from '../lib/services/inventoryService';
 
 interface SmartReorderProps {
+  products: Product[];
+  salesLogs: SaleRecord[];
   onReorderSuccess?: () => void;
 }
 
-export const SmartReorderPO: React.FC<SmartReorderProps> = ({ onReorderSuccess }) => {
-  const [draft, setDraft] = useState<any>(null);
+export const SmartReorderPO: React.FC<SmartReorderProps> = ({ products, salesLogs, onReorderSuccess }) => {
+  const [draft, setDraft] = useState<ReorderPO | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isApproving, setIsApproving] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const fetchDraft = async () => {
+  const fetchDraft = () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/smart-reorder', { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        setDraft(data);
-      }
+      const generatedDraft = inventoryIntelligenceService.generateReorderPO(products, salesLogs);
+      setDraft(generatedDraft);
     } catch (e) {
       console.error(e);
     } finally {
@@ -28,7 +30,7 @@ export const SmartReorderPO: React.FC<SmartReorderProps> = ({ onReorderSuccess }
 
   useEffect(() => {
     fetchDraft();
-  }, []);
+  }, [products, salesLogs]);
 
   const handleApprovePO = async () => {
     if (!draft || draft.items.length === 0) return;
@@ -39,24 +41,17 @@ export const SmartReorderPO: React.FC<SmartReorderProps> = ({ onReorderSuccess }
       // Simulate B2B payment & delivery queue seeding
       await new Promise((resolve) => setTimeout(resolve, 1500));
       
-      // Inject the reordered products back into active inventory
+      // Inject the reordered products back into active inventory using proper service methods
       for (const item of draft.items) {
-        // Log a simulated inventory add request
-        await fetch('/api/inventory', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: item.productName,
-            category: item.supplier === 'Amul Distributors' ? 'Dairy' : 'Staples',
-            sku: item.sku,
-            price: item.unitCost * 1.25, // retail price with markup
-            cost: item.unitCost,
-            reorderPoint: 8,
-            initialQty: item.reorderQuantity,
-            batchNumber: `AUTO-RE-${Date.now().toString().substring(8)}`,
-            expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 30d expiry
-          })
-        });
+        // Find existing product to get its price
+        const existingProduct = products.find(p => p.id === item.productId);
+        
+        await inventoryService.addBatch(
+          item.productId,
+          `AUTO-RE-${Date.now().toString().substring(8)}`,
+          item.reorderQuantity,
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 30d expiry
+        );
       }
 
       setSuccessMsg(`🚀 Purchase Order ${draft.poNumber} Approved! payment of ₹${Math.round(draft.totalPayable + draft.totalGst)} initiated. New batches dispatched and stock updated.`);
@@ -65,7 +60,7 @@ export const SmartReorderPO: React.FC<SmartReorderProps> = ({ onReorderSuccess }
         onReorderSuccess();
       }
 
-      // Re-fetch draft (it should clear out as stock has been restocked!)
+      // Re-fetch draft (it should clear out as stock has been restocked)
       setTimeout(() => {
         setSuccessMsg(null);
         fetchDraft();
