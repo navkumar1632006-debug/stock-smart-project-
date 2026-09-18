@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useInventory } from '../../context/InventoryContext';
 import { Product } from '../../types/retail';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
+import { Badge } from '../ui/Badge';
+import { Card } from '../ui/Card';
 import { Type as FontIcon, Trash2, Download, Filter, Eye, AlertTriangle, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { ProductDetailsDrawer } from './ProductDetailsDrawer';
 
@@ -52,14 +56,14 @@ export const ProductTable: React.FC<ProductTableProps> = ({ onEditClick, userRol
   };
 
   const getStockStatus = (p: Product) => {
-    if (p.stockLevel === 0) return { label: 'OUT OF STOCK', style: 'bg-rose-100 text-rose-700 border-rose-200', icon: AlertCircle };
-    if (p.stockLevel <= p.reorderPoint) return { label: 'LOW STOCK', style: 'bg-amber-100 text-amber-700 border-amber-200', icon: AlertTriangle };
-    return { label: 'IN STOCK', style: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle2 };
+    if (p.stockLevel === 0) return { label: 'OUT OF STOCK', variant: 'destructive' as const, icon: AlertCircle };
+    if (p.stockLevel <= p.reorderPoint) return { label: 'LOW STOCK', variant: 'warning' as const, icon: AlertTriangle };
+    return { label: 'IN STOCK', variant: 'success' as const, icon: CheckCircle2 };
   };
 
   return (
     <>
-      <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-6">
+      <Card className="p-6 space-y-6 border-slate-200/30">
         {/* Header & Main Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -67,29 +71,18 @@ export const ProductTable: React.FC<ProductTableProps> = ({ onEditClick, userRol
             <p className="text-[10px] font-mono text-slate-500/90 mt-1">Dual-channel stock reconciliation & ledger</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <button 
-              onClick={downloadCSV} 
-              className="flex items-center space-x-1.5 px-4 py-2 bg-white border border-slate-200/50 hover:bg-slate-50 text-slate-700 rounded-xl text-[10px] font-semibold uppercase transition-colors shadow-sm"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export CSV</span>
-            </button>
-            <span className="text-[9px] uppercase font-mono bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-xl font-bold border border-indigo-100">
-              {userRole} Access
-            </span>
+            <Button onClick={downloadCSV} variant="outline" size="sm">
+              <Download className="w-3.5 h-3.5 mr-1.5" />
+              Export CSV
+            </Button>
+            <Badge variant="default" className="bg-indigo-50 text-indigo-700 border border-indigo-100">{userRole} Access</Badge>
           </div>
         </div>
 
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-200/30">
           <div className="md:col-span-4 relative">
-            <input
-              type="text"
-              placeholder="Search by name or SKU..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white border border-slate-200/50 shadow-sm rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:border-indigo-500 transition-colors"
-            />
+            <Input type="text" placeholder="Search by name or SKU..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full font-mono text-xs pl-4" />
           </div>
           
           <div className="md:col-span-4 flex items-center space-x-2">
@@ -162,28 +155,22 @@ export const ProductTable: React.FC<ProductTableProps> = ({ onEditClick, userRol
                           <span className="text-[9px] text-slate-400 font-mono mt-0.5">{p.sku} • {p.category}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-right font-medium text-slate-900">₹{p.price}</td>
-                      <td className="py-3 px-4 text-right text-slate-500/90">₹{p.cost}</td>
+                      <td className="py-3 px-4 text-right font-medium text-slate-900 tabular-nums">₹{p.price}</td>
+                      <td className="py-3 px-4 text-right text-slate-500/90 tabular-nums">₹{p.cost}</td>
                       <td className="py-3 px-4 text-center">
-                        <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-md border text-[8px] font-bold tracking-wider ${status.style}`}>
+                        <Badge variant={status.variant} className="space-x-1">
                           <StatusIcon className="w-3 h-3" />
                           <span>{status.label}</span>
-                        </span>
+                        </Badge>
                       </td>
-                      <td className={`py-3 px-4 text-right font-extrabold text-sm ${p.stockLevel === 0 ? 'text-rose-600' : p.stockLevel <= p.reorderPoint ? 'text-amber-600' : 'text-slate-800'}`}>
+                      <td className={`py-3 px-4 text-right font-extrabold text-sm tabular-nums ${p.stockLevel === 0 ? 'text-rose-600' : p.stockLevel <= p.reorderPoint ? 'text-amber-600' : 'text-slate-800'}`}>
                         {p.stockLevel}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => setSelectedProduct(p)} className="p-1.5 hover:bg-slate-200 rounded-lg text-slate-600 transition" title="View Details">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => onEditClick(p)} className="p-1.5 hover:bg-indigo-100 rounded-lg text-indigo-600 transition" title="Edit Product">
-                            <FontIcon className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => deleteProduct(p.id, p.name)} className="p-1.5 hover:bg-rose-100 rounded-lg text-rose-600 transition" title="Delete Product">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <Button onClick={() => setSelectedProduct(p)} variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-slate-900" title="View Details"><Eye className="w-4 h-4" /></Button>
+                          <Button onClick={() => onEditClick(p)} variant="ghost" size="icon" className="h-8 w-8 text-indigo-600 hover:text-indigo-900" title="Edit Product"><FontIcon className="w-4 h-4" /></Button>
+                          <Button onClick={() => deleteProduct(p.id, p.name)} variant="ghost" size="icon" className="h-8 w-8 text-rose-600 hover:text-rose-900" title="Delete Product"><Trash2 className="w-4 h-4" /></Button>
                         </div>
                       </td>
                     </tr>
@@ -210,9 +197,9 @@ export const ProductTable: React.FC<ProductTableProps> = ({ onEditClick, userRol
                       <div className="font-bold text-slate-900 text-sm">{p.name}</div>
                       <div className="text-[10px] text-slate-500/90 font-mono mt-0.5">{p.sku} • {p.category}</div>
                     </div>
-                    <span className={`px-2 py-0.5 rounded border text-[8px] font-bold tracking-wider ${status.style}`}>
+                    <Badge variant={status.variant}>
                       {status.label}
-                    </span>
+                    </Badge>
                   </div>
                   
                   <div className="flex justify-between items-end bg-slate-50 p-2 rounded-xl border border-slate-100">
@@ -229,19 +216,15 @@ export const ProductTable: React.FC<ProductTableProps> = ({ onEditClick, userRol
                   </div>
                   
                   <div className="flex items-center space-x-2 pt-1">
-                    <button onClick={() => setSelectedProduct(p)} className="flex-1 py-2 text-[10px] font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition">
-                      View
-                    </button>
-                    <button onClick={() => onEditClick(p)} className="flex-1 py-2 text-[10px] font-bold text-indigo-700 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition">
-                      Edit
-                    </button>
+                    <Button onClick={() => setSelectedProduct(p)} variant="secondary" size="sm" className="flex-1 text-xs">View</Button>
+                    <Button onClick={() => onEditClick(p)} variant="secondary" size="sm" className="flex-1 text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-transparent">Edit</Button>
                   </div>
                 </div>
               );
             })
           )}
         </div>
-      </div>
+      </Card>
 
       {selectedProduct && (
         <ProductDetailsDrawer product={selectedProduct} onClose={() => setSelectedProduct(null)} />
