@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Play, Square, Volume2, Globe, TrendingUp, AlertTriangle, HelpCircle, AlertCircle } from 'lucide-react';
+import { Card, CardHeader, CardContent } from './ui/Card';
+import { Button } from './ui/Button';
+import { Badge } from './ui/Badge';
 
 interface AIMorningBriefingProps {
   onRefreshTrigger?: () => void;
@@ -83,11 +86,11 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
   ];
 
   return (
-    <div className="bg-gradient-to-br from-indigo-950/40 via-slate-900/40 to-slate-950 border border-indigo-200 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+    <Card className="bg-gradient-to-br from-indigo-950/40 via-slate-900/40 to-slate-950 border-indigo-200 shadow-2xl relative overflow-hidden">
       {/* Background radial glow */}
       <div className="absolute -top-12 -right-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
       
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-indigo-200 pb-4">
+      <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-indigo-200 pb-4">
         <div className="flex items-center space-x-3">
           <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-200">
             <Sparkles className="w-5 h-5 text-indigo-600 animate-pulse" />
@@ -95,11 +98,11 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
           <div>
             <div className="flex items-center space-x-2">
               <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">AI Daily Morning Briefing</h3>
-              <span className="text-[8px] font-mono bg-indigo-500/20 border border-indigo-200 text-indigo-600 font-extrabold px-1.5 py-0.5 rounded uppercase">
+              <Badge variant="default" className="bg-indigo-500/20 border-indigo-200">
                 Copilot Mode
-              </span>
+              </Badge>
             </div>
-            <p className="text-[10px] text-slate-500/90 font-mono">Generative store operations intelligence and predictive actions</p>
+            <p className="text-xs text-slate-500/90 font-mono">Generative store operations intelligence and predictive actions</p>
           </div>
         </div>
 
@@ -109,9 +112,10 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
           <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200/30 px-2.5 py-1.5 rounded-2xl text-slate-500/90">
             <Globe className="w-3.5 h-3.5 text-indigo-600" />
             <select
+              aria-label="Select language"
               value={selectedLang}
               onChange={(e) => setSelectedLang(e.target.value)}
-              className="bg-transparent focus:outline-none text-[10.5px] font-mono font-medium cursor-pointer text-slate-700"
+              className="bg-transparent focus:outline-none text-xs font-mono font-medium cursor-pointer text-slate-700"
             >
               {languages.map((l) => (
                 <option key={l.code} value={l.code} className="bg-slate-50 text-slate-700 text-xs">
@@ -121,29 +125,27 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
             </select>
           </div>
 
-          <button
+          <Button
             onClick={handleToggleSpeak}
             disabled={isLoading || !!errorMsg}
-            className={`px-4 py-1.5 rounded-2xl text-[10.5px] font-semibold uppercase tracking-wider transition-all flex items-center space-x-1.5 ${
-              isSpeaking
-                ? 'bg-rose-600/20 border border-rose-200 text-rose-600 hover:bg-rose-600/30'
-                : 'bg-indigo-600 hover:bg-indigo-500 text-slate-900 shadow-lg'
-            }`}
+            variant={isSpeaking ? "destructive" : "primary"}
+            size="sm"
+            className="uppercase tracking-wider flex items-center space-x-1.5"
           >
             {isSpeaking ? (
               <>
-                <Square className="w-3.5 h-3.5 text-rose-600" />
+                <Square className="w-3.5 h-3.5 text-white" />
                 <span>Stop Audio</span>
               </>
             ) : (
               <>
-                <Volume2 className="w-3.5 h-3.5 text-slate-900" />
+                <Volume2 className="w-3.5 h-3.5 text-white" />
                 <span>Listen Briefing</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
-      </div>
+      </CardHeader>
 
       {/* Content box */}
       <div className="mt-4">
@@ -157,7 +159,7 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
             </div>
             <div className="text-center space-y-1">
               <p className="text-sm font-medium text-slate-800">Synthesizing AI Intelligence</p>
-              <p className="text-[10px] font-mono text-slate-500/90">Analyzing inventory metrics, forecasting demands, and generating your morning brief...</p>
+              <p className="text-xs font-mono text-slate-500/90">Analyzing inventory metrics, forecasting demands, and generating your morning brief...</p>
             </div>
             <div className="w-64 h-1.5 bg-white rounded-full overflow-hidden mt-2">
               <div className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 rounded-full w-full origin-left animate-pulse scale-x-50"></div>
@@ -169,7 +171,7 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
             <span>{errorMsg}</span>
           </div>
         ) : (
-          <div className="bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-2xl p-6 md:p-6 text-slate-800">
+          <CardContent className="bg-white shadow-sm border border-slate-200/30 rounded-2xl p-6 md:p-6 text-slate-800">
             {/* Format paragraphs elegantly */}
             {briefText.split('\n').map((line, idx) => {
               const cleaned = line.trim();
@@ -180,7 +182,7 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
               if (cleaned.startsWith('-') || cleaned.startsWith('*')) {
                 const bulletContent = cleaned.substring(1).trim();
                 return (
-                  <div key={idx} className="flex items-start space-x-2 my-2 text-[11.5px] text-slate-700">
+                  <div key={idx} className="flex items-start space-x-2 my-2 text-sm text-slate-700">
                     <span className="text-indigo-600 font-extrabold mt-0.5">•</span>
                     <p className="leading-relaxed font-sans">{bulletContent}</p>
                   </div>
@@ -190,35 +192,37 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
               // Heading formatting
               if (cleaned.startsWith('###')) {
                 return (
-                  <h4 key={idx} className="text-[12px] font-semibold text-indigo-600 uppercase tracking-wide mt-4 mb-1 border-l-2 border-indigo-500 pl-2">
+                  <h4 key={idx} className="text-sm font-semibold text-indigo-600 uppercase tracking-wide mt-4 mb-1 border-l-2 border-indigo-500 pl-2">
                     {cleaned.replace('###', '').trim()}
                   </h4>
                 );
               }
 
               return (
-                <p key={idx} className="text-[11.5px] leading-relaxed font-sans text-slate-700 my-1.5">
+                <p key={idx} className="text-sm leading-relaxed font-sans text-slate-700 my-1.5">
                   {renderedLine}
                 </p>
               );
             })}
-          </div>
+          </CardContent>
         )}
       </div>
 
       {/* Advice ribbon */}
-      <div className="mt-4 flex items-center justify-between text-[10px] font-mono text-slate-400 bg-slate-50/20 px-3.5 py-2.5 rounded-2xl border border-slate-200/30">
+      <div className="mt-4 flex items-center justify-between text-xs font-mono text-slate-400 bg-slate-50/20 px-3.5 py-2.5 rounded-2xl border border-slate-200/30">
         <span className="flex items-center">
           <TrendingUp className="w-3.5 h-3.5 text-indigo-600 mr-1.5" />
           Projections updated daily based on historic sales run-rates.
         </span>
-        <button
+        <Button
           onClick={fetchBriefing}
-          className="text-indigo-600 hover:text-indigo-600 font-medium uppercase hover:underline"
+          variant="ghost"
+          size="sm"
+          className="text-indigo-600 hover:text-indigo-700 font-medium uppercase hover:bg-transparent"
         >
           Re-Synthesize
-        </button>
+        </Button>
       </div>
-    </div>
+    </Card>
   );
 };
