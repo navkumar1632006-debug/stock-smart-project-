@@ -33,7 +33,7 @@
 *   `StoreSelector.tsx`: Dropdown for stores. Reachable.
 *   `SupplierManagement.tsx`: Vendor CRUD. Reachable.
 *   `SupplyChainAnalytics.tsx`: Metrics view. Reachable.
-*   **`SupplyChainIntelligence.tsx`: [DEAD/UNREACHABLE] Never imported or rendered.**
+*   `SupplyChainIntelligence.tsx`: **[REACHABLE]** Dynamically imported and conditionally rendered in `RetailDashboard.tsx`.
 *   `UserMenu.tsx`: Header user dropdown. Reachable.
 *   `expiry/DiscountRecommendationModal.tsx`: Discount action. Reachable.
 *   `expiry/ExpiryDashboard.tsx`: FEFO tracking list. Reachable.
