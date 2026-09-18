@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useInventory } from '../../context/InventoryContext';
 import { Product } from '../../types/retail';
 import { Plus, Loader2 } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { Input } from '../ui/Input';
+import { Button } from '../ui/Button';
 
 interface ProductFormProps {
   editProduct: Product | null;
@@ -87,160 +90,157 @@ export const ProductForm: React.FC<ProductFormProps> = ({ editProduct, onCancelE
 
   if (userRole !== 'Owner' && userRole !== 'Manager') {
     return (
-      <div className="glass-card p-6 rounded-3xl border border-slate-200/30">
-        <div className="bg-indigo-500/5 border border-indigo-200 rounded-2xl p-6 text-[10.5px] text-slate-500/90 font-mono text-center">
-          🔒 Access Locked: Role <b>{userRole}</b> is not authorized to register catalog products. Swap to Owner/Manager roles to unlock.
-        </div>
-      </div>
+      <Card className="border-slate-200/30">
+        <CardContent className="p-6">
+          <div className="bg-indigo-500/5 border border-indigo-200 rounded-lg p-6 text-sm text-slate-500/90 font-mono text-center">
+            🔒 Access Locked: Role <b>{userRole}</b> is not authorized to register catalog products. Swap to Owner/Manager roles to unlock.
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-4">
-      <div className="flex items-center space-x-2 border-b border-slate-200/30 pb-2">
-        <Plus className="w-4 h-4 text-indigo-600" />
-        <h4 className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider">
-          {editProduct ? 'Edit SKU Item' : 'Register New SKU Item'}
-        </h4>
-        {editProduct && (
-          <button onClick={onCancelEdit} className="ml-auto text-[10px] text-slate-500 hover:text-slate-800 font-medium underline">
-            Cancel Edit
-          </button>
-        )}
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div>
-          <label className="text-[9px] uppercase font-mono text-slate-500/90">Product Name *</label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full mt-1 px-3 py-1.5 bg-slate-50 border border-slate-200/30 rounded-2xl text-[10.5px] font-mono text-slate-800 focus:outline-none focus:border-indigo-500"
-          />
+    <Card className="border-slate-200/30">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-slate-200/30">
+        <div className="flex items-center space-x-2">
+          <Plus className="w-4 h-4 text-indigo-600" />
+          <CardTitle className="text-sm uppercase tracking-wider text-slate-800">
+            {editProduct ? 'Edit SKU Item' : 'Register New SKU Item'}
+          </CardTitle>
         </div>
-
-        <div className="grid grid-cols-2 gap-2">
+        {editProduct && (
+          <Button type="button" onClick={onCancelEdit} variant="ghost" size="sm" className="h-8 text-xs underline">
+            Cancel Edit
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent className="pt-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-[9px] uppercase font-mono text-slate-500/90">Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as any)}
-              className="w-full mt-1 px-2 py-1.5 bg-slate-50 border border-slate-200/30 rounded-2xl text-[10.5px] font-mono text-slate-800 focus:outline-none focus:border-indigo-500"
-            >
-              <option value="Dairy">Dairy</option>
-              <option value="Bakery">Bakery</option>
-              <option value="Staples">Staples</option>
-              <option value="Grocery">Grocery</option>
-              <option value="Pharmacy">Pharmacy</option>
-              <option value="Fruits & Vegetables">Fruits & Veg</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-[9px] uppercase font-mono text-slate-500/90">SKU Code *</label>
-            <input
+            <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">Product Name *</label>
+            <Input
               type="text"
               required
-              value={sku}
-              onChange={(e) => setSku(e.target.value)}
-              className="w-full mt-1 px-3 py-1.5 bg-slate-50 border border-slate-200/30 rounded-2xl text-[10.5px] font-mono text-slate-800 focus:outline-none focus:border-indigo-500"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
-        </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          <div>
-            <label className="text-[9px] uppercase font-mono text-slate-500/90">MRP (₹) *</label>
-            <input
-              type="number"
-              required
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="w-full mt-1 px-2.5 py-1.5 bg-slate-50 border border-slate-200/30 rounded-2xl text-[10.5px] font-mono text-slate-800 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="text-[9px] uppercase font-mono text-slate-500/90">Cost (₹) *</label>
-            <input
-              type="number"
-              required
-              value={cost}
-              onChange={(e) => setCost(e.target.value)}
-              className="w-full mt-1 px-2.5 py-1.5 bg-slate-50 border border-slate-200/30 rounded-2xl text-[10.5px] font-mono text-slate-800 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="text-[9px] uppercase font-mono text-slate-500/90">Safety Min</label>
-            <input
-              type="number"
-              value={reorderPoint}
-              onChange={(e) => setReorderPoint(e.target.value)}
-              className="w-full mt-1 px-2.5 py-1.5 bg-slate-50 border border-slate-200/30 rounded-2xl text-[10.5px] font-mono text-slate-800 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {!editProduct && (
-          <div className="border-t border-slate-200/30 pt-2.5 space-y-2">
-            <span className="text-[8.5px] font-mono text-slate-500/90 uppercase tracking-widest font-semibold block">
-              Initial Stock / Expiry Tracking (Optional)
-            </span>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="text-[8px] uppercase font-mono text-slate-400">Initial Qty</label>
-                <input
-                  type="number"
-                  value={stockLevel}
-                  onChange={(e) => setStockLevel(e.target.value)}
-                  className="w-full mt-1 px-2 py-1 bg-slate-50 border border-slate-200/30 rounded-xl text-[10px] font-mono text-slate-800"
-                />
-              </div>
-              <div>
-                <label className="text-[8px] uppercase font-mono text-slate-400">Batch No</label>
-                <input
-                  type="text"
-                  value={batchNo}
-                  onChange={(e) => setBatchNo(e.target.value)}
-                  className="w-full mt-1 px-2 py-1 bg-slate-50 border border-slate-200/30 rounded-xl text-[10px] font-mono text-slate-800"
-                />
-              </div>
-              <div>
-                <label className="text-[8px] uppercase font-mono text-slate-400">Expiry Date</label>
-                <input
-                  type="date"
-                  value={expiryDate}
-                  onChange={(e) => setExpiryDate(e.target.value)}
-                  className="w-full mt-1 px-1.5 py-1 bg-slate-50 border border-slate-200/30 rounded-xl text-[10px] font-mono text-slate-800"
-                />
-              </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="flex h-10 w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 border-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="Dairy">Dairy</option>
+                <option value="Bakery">Bakery</option>
+                <option value="Staples">Staples</option>
+                <option value="Grocery">Grocery</option>
+                <option value="Pharmacy">Pharmacy</option>
+                <option value="Fruits & Vegetables">Fruits & Veg</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">SKU Code *</label>
+              <Input
+                type="text"
+                required
+                value={sku}
+                onChange={(e) => setSku(e.target.value)}
+              />
             </div>
           </div>
-        )}
 
-        {editProduct && (
-          <div className="grid grid-cols-1 gap-2">
-             <div>
-                <label className="text-[9px] uppercase font-mono text-slate-500/90">Adjust Stock Level (Absolute)</label>
-                <input
-                  type="number"
-                  value={stockLevel}
-                  onChange={(e) => setStockLevel(e.target.value)}
-                  className="w-full mt-1 px-3 py-1.5 bg-slate-50 border border-slate-200/30 rounded-2xl text-[10.5px] font-mono text-slate-800 focus:outline-none"
-                />
-              </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">MRP (₹) *</label>
+              <Input
+                type="number"
+                required
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">Cost (₹) *</label>
+              <Input
+                type="number"
+                required
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">Safety Min</label>
+              <Input
+                type="number"
+                value={reorderPoint}
+                onChange={(e) => setReorderPoint(e.target.value)}
+              />
+            </div>
           </div>
-        )}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-[11px] font-semibold uppercase text-slate-900 tracking-wider flex items-center justify-center space-x-1.5 transition disabled:opacity-50"
-        >
-          {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-900" /> : <Plus className="w-3.5 h-3.5" />}
-          <span>{editProduct ? 'Save Changes' : 'Add to Catalog'}</span>
-        </button>
-      </form>
-    </div>
+          {!editProduct && (
+            <div className="border-t border-slate-200/30 pt-4 space-y-3">
+              <span className="text-xs font-semibold text-slate-500/90 uppercase tracking-widest block">
+                Initial Stock / Expiry Tracking (Optional)
+              </span>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] font-semibold uppercase text-slate-400 mb-1.5 block">Initial Qty</label>
+                  <Input
+                    type="number"
+                    value={stockLevel}
+                    onChange={(e) => setStockLevel(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase text-slate-400 mb-1.5 block">Batch No</label>
+                  <Input
+                    type="text"
+                    value={batchNo}
+                    onChange={(e) => setBatchNo(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase text-slate-400 mb-1.5 block">Expiry Date</label>
+                  <Input
+                    type="date"
+                    value={expiryDate}
+                    onChange={(e) => setExpiryDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {editProduct && (
+            <div className="grid grid-cols-1 gap-3">
+               <div>
+                  <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">Adjust Stock Level (Absolute)</label>
+                  <Input
+                    type="number"
+                    value={stockLevel}
+                    onChange={(e) => setStockLevel(e.target.value)}
+                  />
+                </div>
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full mt-2 uppercase tracking-wider"
+            size="lg"
+          >
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+            {editProduct ? 'Save Changes' : 'Add to Catalog'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
