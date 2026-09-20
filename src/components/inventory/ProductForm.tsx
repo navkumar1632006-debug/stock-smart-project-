@@ -60,7 +60,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ editProduct, onCancelE
           price: Number(price),
           cost: Number(cost),
           reorderPoint: Number(reorderPoint),
-          stockLevel: Number(stockLevel) // Service securely calls RPC for changes
+          stockLevel: Number(stockLevel)
         });
         onCancelEdit();
       } else {
@@ -90,10 +90,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({ editProduct, onCancelE
 
   if (userRole !== 'Owner' && userRole !== 'Manager') {
     return (
-      <Card className="border-slate-200/30">
+      <Card>
         <CardContent className="p-6">
-          <div className="bg-indigo-500/5 border border-indigo-200 rounded-lg p-6 text-sm text-slate-500/90 font-mono text-center">
-            🔒 Access Locked: Role <b>{userRole}</b> is not authorized to register catalog products. Swap to Owner/Manager roles to unlock.
+          <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-6 text-sm text-indigo-700 text-center">
+            <strong>Access Locked:</strong> Role {userRole} is not authorized to register catalog products. Swap to Owner/Manager roles to unlock.
           </div>
         </CardContent>
       </Card>
@@ -101,144 +101,169 @@ export const ProductForm: React.FC<ProductFormProps> = ({ editProduct, onCancelE
   }
 
   return (
-    <Card className="border-slate-200/30">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-slate-200/30">
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-slate-100">
         <div className="flex items-center space-x-2">
-          <Plus className="w-4 h-4 text-indigo-600" />
-          <CardTitle className="text-sm uppercase tracking-wider text-slate-800">
-            {editProduct ? 'Edit SKU Item' : 'Register New SKU Item'}
+          <Plus className="w-5 h-5 text-blue-600" />
+          <CardTitle className="text-base font-bold text-slate-900">
+            {editProduct ? 'Edit Product' : 'Add New Product'}
           </CardTitle>
         </div>
         {editProduct && (
-          <Button type="button" onClick={onCancelEdit} variant="ghost" size="sm" className="h-8 text-xs underline">
+          <Button type="button" onClick={onCancelEdit} variant="ghost" size="sm">
             Cancel Edit
           </Button>
         )}
       </CardHeader>
-      <CardContent className="pt-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">Product Name *</label>
-            <Input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">Category</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="flex h-10 w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 border-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-              >
-                <option value="Dairy">Dairy</option>
-                <option value="Bakery">Bakery</option>
-                <option value="Staples">Staples</option>
-                <option value="Grocery">Grocery</option>
-                <option value="Pharmacy">Pharmacy</option>
-                <option value="Fruits & Vegetables">Fruits & Veg</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">SKU Code *</label>
-              <Input
-                type="text"
-                required
-                value={sku}
-                onChange={(e) => setSku(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">MRP (₹) *</label>
-              <Input
-                type="number"
-                required
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">Cost (₹) *</label>
-              <Input
-                type="number"
-                required
-                value={cost}
-                onChange={(e) => setCost(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">Safety Min</label>
-              <Input
-                type="number"
-                value={reorderPoint}
-                onChange={(e) => setReorderPoint(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {!editProduct && (
-            <div className="border-t border-slate-200/30 pt-4 space-y-3">
-              <span className="text-xs font-semibold text-slate-500/90 uppercase tracking-widest block">
-                Initial Stock / Expiry Tracking (Optional)
-              </span>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="text-[10px] font-semibold uppercase text-slate-400 mb-1.5 block">Initial Qty</label>
-                  <Input
-                    type="number"
-                    value={stockLevel}
-                    onChange={(e) => setStockLevel(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-semibold uppercase text-slate-400 mb-1.5 block">Batch No</label>
-                  <Input
-                    type="text"
-                    value={batchNo}
-                    onChange={(e) => setBatchNo(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-semibold uppercase text-slate-400 mb-1.5 block">Expiry Date</label>
-                  <Input
-                    type="date"
-                    value={expiryDate}
-                    onChange={(e) => setExpiryDate(e.target.value)}
-                  />
-                </div>
+      <CardContent className="pt-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Information Section */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Basic Information</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1.5 block">Product Name *</label>
+                <Input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g., Mother Dairy Milk"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1.5 block">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as any)}
+                  className="flex h-10 w-full rounded-md border bg-white px-3 py-2 text-sm text-slate-900 border-slate-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-shadow"
+                >
+                  <option value="Dairy">Dairy</option>
+                  <option value="Bakery">Bakery</option>
+                  <option value="Staples">Staples</option>
+                  <option value="Grocery">Grocery</option>
+                  <option value="Pharmacy">Pharmacy</option>
+                  <option value="Fruits & Vegetables">Fruits & Veg</option>
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-sm font-medium text-slate-700 mb-1.5 block">SKU Code *</label>
+                <Input
+                  type="text"
+                  required
+                  value={sku}
+                  onChange={(e) => setSku(e.target.value)}
+                  placeholder="e.g., MD-MILK-500ML"
+                />
               </div>
             </div>
-          )}
+          </div>
 
-          {editProduct && (
-            <div className="grid grid-cols-1 gap-3">
-               <div>
-                  <label className="text-xs font-semibold uppercase text-slate-500/90 mb-1.5 block">Adjust Stock Level (Absolute)</label>
+          {/* Pricing Section */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pricing</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1.5 block">MRP (₹) *</label>
+                <Input
+                  type="number"
+                  required
+                  min="0"
+                  step="0.01"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1.5 block">Cost Price (₹) *</label>
+                <Input
+                  type="number"
+                  required
+                  min="0"
+                  step="0.01"
+                  value={cost}
+                  onChange={(e) => setCost(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Inventory Section */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Inventory & Tracking</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1.5 block">Safety Min (Reorder Point)</label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={reorderPoint}
+                  onChange={(e) => setReorderPoint(e.target.value)}
+                />
+              </div>
+              
+              {!editProduct && (
+                <>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 mb-1.5 block">Initial Quantity</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={stockLevel}
+                      onChange={(e) => setStockLevel(e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 mb-1.5 block">Batch Number (Optional)</label>
+                    <Input
+                      type="text"
+                      value={batchNo}
+                      onChange={(e) => setBatchNo(e.target.value)}
+                      placeholder="e.g., BATCH-001"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 mb-1.5 block">Expiry Date (Optional)</label>
+                    <Input
+                      type="date"
+                      value={expiryDate}
+                      onChange={(e) => setExpiryDate(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
+
+              {editProduct && (
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-1.5 block">Adjust Stock Level (Absolute)</label>
                   <Input
                     type="number"
+                    min="0"
                     value={stockLevel}
                     onChange={(e) => setStockLevel(e.target.value)}
                   />
                 </div>
+              )}
             </div>
-          )}
+          </div>
 
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full mt-2 uppercase tracking-wider"
-            size="lg"
-          >
-            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-            {editProduct ? 'Save Changes' : 'Add to Catalog'}
-          </Button>
+          <div className="pt-4 border-t border-slate-100">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Plus className="w-4 h-4 mr-2" />
+              )}
+              {editProduct ? 'Save Changes' : 'Add to Catalog'}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>
