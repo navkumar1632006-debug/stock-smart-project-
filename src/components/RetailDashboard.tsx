@@ -537,7 +537,7 @@ export const RetailDashboard: React.FC = () => {
     // Find active expiring batches
     const activeExpirations = batches.filter(b => {
       if (b.currentQuantity <= 0) return false;
-      const days = ((_: any) => 10)(b.expiryDate);
+      const days = Math.ceil((new Date(b.expiryDate).getTime() - Date.now()) / (1000 * 3600 * 24));
       return days >= 0 && days <= 5;
     }).length;
 
@@ -722,7 +722,7 @@ export const RetailDashboard: React.FC = () => {
                 </React.Suspense>
 
                 {/* KPI Metrics Ribbon */}
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Sales Metric */}
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -733,7 +733,7 @@ export const RetailDashboard: React.FC = () => {
                       <div className="text-2xl font-bold text-slate-900">₹{metrics.totalSalesRev}</div>
                       <p className="text-xs text-emerald-600 flex items-center mt-1">
                         <TrendingUp className="w-3 h-3 mr-1" />
-                        +14.5% vs last week
+                        Live
                       </p>
                     </CardContent>
                   </Card>
@@ -783,105 +783,92 @@ export const RetailDashboard: React.FC = () => {
                       </p>
                     </CardContent>
                   </Card>
-
-                  {/* Business Health Score */}
-                  <Card className="cursor-pointer hover:border-blue-300 transition-colors" onClick={() => alert("Business Score: 84%\n\n• Stock Turnover Rate: 88% (Excellent)\n• Waste Avoidance: 91% (Optimal)\n• Customer Credit Book Health: 79% (Nudges needed)\n• Customer Loyalty Multiplier: 82%")}>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-xs font-semibold uppercase text-slate-500">Health Score</CardTitle>
-                      <Activity className="w-4 h-4 text-blue-500" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-slate-900">84%</div>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Click to view audit
-                      </p>
-                    </CardContent>
-                  </Card>
                 </div>
 
-                {/* Simplified POS Quick Action Checklist */}
+                {/* Active Operations Guidance */}
                 <div className="mt-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-bold text-slate-900 flex items-center">
-                      <Sparkles className="w-5 h-5 text-indigo-600 mr-2 animate-pulse" />
-                      Active Operations Guidance
-                    </h2>
-                    <Badge variant="secondary">3 Real-time Actions</Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Notification Card 1 */}
-                    <Card className="flex flex-col justify-between">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between mb-3">
-                          <Badge variant="destructive">Stockout Alert</Badge>
-                          <span className="text-xs font-medium text-slate-500">Urgent</span>
-                        </div>
-                        <h4 className="text-sm font-bold text-slate-900 mb-1">Draft Restock for Aashirvaad Atta</h4>
-                        <p className="text-xs text-slate-600 leading-relaxed">
-                          Current stock is only {products.find(p => p.name.includes("Atta"))?.stockLevel || 4} units, falling below critical safety threshold.
-                        </p>
-                      </CardContent>
-                      <div className="p-4 pt-0">
-                        <Button 
-                          variant="destructive" 
-                          className="w-full text-xs"
-                          onClick={() => {
-                            setDashboardSection('inventory');
-                            alert("Restock proposal opened! Scroll down to ONDC automated replenishment sheet.");
-                          }}
-                        >
-                          Generate Smart Restock PO
-                        </Button>
-                      </div>
-                    </Card>
+                  {(() => {
+                    const overviewLowStock = products.find(p => p.stockLevel <= p.reorderPoint);
+                    const overviewExpiring = batches.find(b => {
+                      if (b.currentQuantity <= 0) return false;
+                      const d = Math.ceil((new Date(b.expiryDate).getTime() - Date.now()) / (1000 * 3600 * 24));
+                      return d >= 0 && d <= 5;
+                    });
+                    const overviewExpiringDays = overviewExpiring ? Math.ceil((new Date(overviewExpiring.expiryDate).getTime() - Date.now()) / (1000 * 3600 * 24)) : 0;
+                    const activeActionCount = (overviewLowStock ? 1 : 0) + (overviewExpiring ? 1 : 0);
 
-                    {/* Notification Card 2 */}
-                    <Card className="flex flex-col justify-between">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between mb-3">
-                          <Badge variant="warning">Expiry Nudge</Badge>
-                          <span className="text-xs font-medium text-slate-500">2 Days Left</span>
+                    return (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <h2 className="text-lg font-bold text-slate-900 flex items-center">
+                            <Sparkles className="w-5 h-5 text-indigo-600 mr-2 animate-pulse" />
+                            Active Operations Guidance
+                          </h2>
+                          <Badge variant="secondary">{activeActionCount} Real-time Actions</Badge>
                         </div>
-                        <h4 className="text-sm font-bold text-slate-900 mb-1">Discount Mother Dairy Paneer</h4>
-                        <p className="text-xs text-slate-600 leading-relaxed">
-                          Batch is expiring. Apply 25% automatic discount on the local consumer marketplace to clear stock.
-                        </p>
-                      </CardContent>
-                      <div className="p-4 pt-0">
-                        <Button 
-                          variant="secondary" 
-                          className="w-full text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border-none"
-                          onClick={() => setActiveTab('marketplace')}
-                        >
-                          Promote on Local App
-                        </Button>
-                      </div>
-                    </Card>
 
-                    {/* Notification Card 3 */}
-                    <Card className="flex flex-col justify-between">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between mb-3">
-                          <Badge variant="success">Ledger Due</Badge>
-                          <span className="text-xs font-medium text-slate-500">Repayment</span>
-                        </div>
-                        <h4 className="text-sm font-bold text-slate-900 mb-1">Outstanding Credit: Amit Patel</h4>
-                        <p className="text-xs text-slate-600 leading-relaxed">
-                          Ledger balance ₹3,100 overdue. Dispatch simulated WhatsApp payment nudge.
-                        </p>
-                      </CardContent>
-                      <div className="p-4 pt-0">
-                        <Button 
-                          variant="secondary" 
-                          className="w-full text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-none"
-                          onClick={() => setDashboardSection('khata')}
-                        >
-                          Open Credit Ledger
-                        </Button>
-                      </div>
-                    </Card>
-                  </div>
+                        {activeActionCount === 0 ? (
+                          <EmptyState
+                            icon={CheckCircle2}
+                            title="All clear!"
+                            description="You have no urgent operational tasks. Inventory and batches are healthy."
+                          />
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Notification Card 1: Dynamic Stockout */}
+                            {overviewLowStock && (
+                              <Card className="flex flex-col justify-between">
+                                <CardContent className="pt-6">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <Badge variant="destructive">Stockout Alert</Badge>
+                                    <span className="text-xs font-medium text-slate-500">Urgent</span>
+                                  </div>
+                                  <h4 className="text-sm font-bold text-slate-900 mb-1">Draft Restock for {overviewLowStock.name}</h4>
+                                  <p className="text-xs text-slate-600 leading-relaxed">
+                                    Current stock is only {overviewLowStock.stockLevel} units, falling below critical safety threshold of {overviewLowStock.reorderPoint}.
+                                  </p>
+                                </CardContent>
+                                <div className="p-4 pt-0">
+                                  <Button 
+                                    variant="destructive" 
+                                    className="w-full text-xs"
+                                    onClick={() => setDashboardSection('inventory')}
+                                  >
+                                    Generate Smart Restock PO
+                                  </Button>
+                                </div>
+                              </Card>
+                            )}
+
+                            {/* Notification Card 2: Dynamic Expiry */}
+                            {overviewExpiring && (
+                              <Card className="flex flex-col justify-between">
+                                <CardContent className="pt-6">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <Badge variant="warning">Expiry Nudge</Badge>
+                                    <span className="text-xs font-medium text-slate-500">{overviewExpiringDays} Days Left</span>
+                                  </div>
+                                  <h4 className="text-sm font-bold text-slate-900 mb-1">Discount {overviewExpiring.productName}</h4>
+                                  <p className="text-xs text-slate-600 leading-relaxed">
+                                    Batch {overviewExpiring.batchNumber} is expiring. Apply automatic discount on the local consumer marketplace to clear stock.
+                                  </p>
+                                </CardContent>
+                                <div className="p-4 pt-0">
+                                  <Button 
+                                    variant="secondary" 
+                                    className="w-full text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border-none"
+                                    onClick={() => setActiveTab('marketplace')}
+                                  >
+                                    Promote on Local App
+                                  </Button>
+                                </div>
+                              </Card>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })}
                 </div>
 
               </div>
