@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AppShell } from './layout/AppShell';
 import { Download, Upload,
   Package,
   AlertTriangle,
@@ -556,160 +557,93 @@ export const RetailDashboard: React.FC = () => {
   const t = (en: string, hi: string, other?: string) => language === 'en' ? en : (language === 'hi' ? hi : (other || hi));
 
   return (
-    <div className={`min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans transition-all duration-300 ${fontScale ? 'text-lg' : 'text-sm'}`}>
-      
-      {/* Dynamic Master Header */}
-      <header className="border-b border-slate-200/30 bg-slate-50/60 backdrop-blur-md sticky top-0 z-50 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          
-          {/* Logo Brand Pairings */}
-          <div className="flex items-center space-x-3.5">
-            <div className="p-2.5 bg-indigo-600/10 border border-indigo-200 rounded-2xl">
-              <Package className="w-6 h-6 text-indigo-600" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-[9px] uppercase tracking-widest font-mono text-slate-500/90 font-medium">Bharat Retail OS</span>
-                <span className="h-1 w-1 bg-indigo-500 rounded-full"></span>
-                <span className="text-[9px] font-mono bg-indigo-500/10 text-indigo-600 px-1.5 py-0.2 rounded font-semibold uppercase">v2.1</span>
-              </div>
-              <h1 className="text-xl font-semibold text-slate-900 tracking-tight flex items-center">
-                StockSmart AI
-                <span className="ml-2 px-2 py-0.5 text-[9px] font-mono text-emerald-600 bg-emerald-500/10 border border-emerald-200 rounded-xl">
-                  {/* Fallback store info */ 'Local Shop'}
-                </span>
-              </h1>
-            </div>
+    <AppShell
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      dashboardSection={dashboardSection}
+      setDashboardSection={setDashboardSection}
+      fontScale={fontScale}
+      headerActions={
+        <>
+          <div className="flex items-center space-x-1.5 bg-indigo-500/10 border border-indigo-200 rounded-2xl px-2.5 py-1 text-slate-700 text-xs flex-shrink-0">
+            <Shield className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Staff Mode: <b className="text-slate-900 font-extrabold">{currentRole}</b></span>
           </div>
-
-          {/* Tab Navigation */}
-          <nav className="flex items-center bg-white shadow-sm border border-slate-200 rounded-2xl p-1 border border-slate-200/30 rounded-2xl">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center space-x-1.5 px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-2xl transition ${activeTab === 'dashboard' ? 'bg-indigo-600 text-slate-900 shadow-lg shadow-indigo-500/15' : 'text-slate-500/90 hover:text-slate-900'}`}
-            >
-              <Activity className="w-3.5 h-3.5" />
-              <span>{t("SaaS Desk", "🏪 दुकान डैशबोर्ड")}</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('marketplace')}
-              className={`flex items-center space-x-1.5 px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-2xl transition ${activeTab === 'marketplace' ? 'bg-indigo-600 text-slate-900 shadow-lg shadow-indigo-500/15' : 'text-slate-500/90 hover:text-slate-900'}`}
-            >
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>{t("Hyperlocal App", "🛍️ ग्राहक मार्केट")}</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('assistant')}
-              className={`flex items-center space-x-1.5 px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-2xl transition ${activeTab === 'assistant' ? 'bg-indigo-600 text-slate-900 shadow-lg shadow-indigo-500/15' : 'text-slate-500/90 hover:text-slate-900'}`}
-            >
-              <Sparkles className="w-3.5 h-3.5 animate-pulse text-yellow-400" />
-              <span>{t("Retail Assistant", "🤖 AI मददगार")}</span>
-            </button>
-          </nav>
-        </div>
-      </header>
-
-      {/* Accessibility & Offline Simulation Strip */}
-      <div className="bg-slate-50 border-b border-slate-200/30 py-3.5 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Role Badge */}
-            <div className="flex items-center space-x-1.5 bg-indigo-500/10 border border-indigo-200 rounded-2xl px-2.5 py-1 text-slate-700 text-xs">
-              <Shield className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Staff Mode: <b className="text-slate-900 font-extrabold">{currentRole}</b></span>
-            </div>
+          <button 
+            onClick={() => {
+              setIsOffline(!isOffline);
+              if (!isOffline) {
+                alert("Offline Buffer Simulator Activated! Real-time API sync is suspended. All transactional mutations will buffer locally.");
+              } else {
+                alert("Online state re-established. Sync queues ready to push.");
+              }
+            }}
+            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-2xl text-xs border transition flex-shrink-0 ${isOffline ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-white text-slate-500/90 border-slate-200/50'}`}
+          >
+            {isOffline ? <WifiOff className="w-3.5 h-3.5 text-amber-600 animate-pulse" /> : <Wifi className="w-3.5 h-3.5 text-emerald-600" />}
+            <span>{isOffline ? `Offline Mode (Buffered: ${syncQueueCount})` : "Online Status"}</span>
+          </button>
 
-            {/* Simulated Offline Mode indicator */}
+          {isOffline && (
             <button 
               onClick={() => {
-                setIsOffline(!isOffline);
-                if (!isOffline) {
-                  alert("Offline Buffer Simulator Activated! Real-time API sync is suspended. All transactional mutations will buffer locally.");
-                } else {
-                  alert("Online state re-established. Sync queues ready to push.");
-                }
+                setIsLoading(true);
+                setTimeout(() => {
+                  setIsLoading(false);
+                  setSyncQueueCount(0);
+                  alert("Synced offline transaction state buffers to active database collections successfully!");
+                }, 1200);
               }}
-              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-2xl text-xs border transition ${isOffline ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-white text-slate-500/90 border-slate-200/50'}`}
+              className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-slate-900 font-extrabold text-[9.5px] rounded-xl shadow-md hover:shadow-indigo-500/20 flex-shrink-0"
             >
-              {isOffline ? <WifiOff className="w-3.5 h-3.5 text-amber-600 animate-pulse" /> : <Wifi className="w-3.5 h-3.5 text-emerald-600" />}
-              <span>{isOffline ? `Offline Mode (Buffered: ${syncQueueCount})` : "Online Status (Synced)"}</span>
+              Push Sync Queue
             </button>
+          )}
 
-            {/* Sync Queue trigger */}
-            {isOffline && (
-              <button 
-                onClick={() => {
-                  setIsLoading(true);
-                  setTimeout(() => {
-                    setIsLoading(false);
-                    setSyncQueueCount(0);
-                    alert("Synced offline transaction state buffers to active database collections successfully!");
-                  }, 1200);
-                }}
-                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-slate-900 font-extrabold text-[9.5px] rounded-xl shadow-md hover:shadow-indigo-500/20"
-              >
-                Push Sync Queue
-              </button>
-            )}
+          <div className="flex items-center space-x-1.5 px-2 py-1 bg-slate-50 border border-slate-200/50 rounded-2xl flex-shrink-0">
+            <span className="text-[10px] text-slate-500/90 font-mono">🌐</span>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as any)}
+              className="bg-transparent text-xs font-semibold text-indigo-600 focus:outline-none appearance-none pr-1"
+            >
+              <option value="en">English</option>
+              <option value="hi">हिंदी (Hindi)</option>
+              <option value="ta">தமிழ் (Tamil)</option>
+              <option value="te">తెలుగు (Telugu)</option>
+              <option value="kn">ಕನ್ನಡ (Kannada)</option>
+            </select>
           </div>
 
-          <div className="flex items-center space-x-3.5">
-            {/* Bilingual Mode Toggle */}
-            <div className="flex items-center space-x-1.5 px-2 py-1 bg-slate-50 border border-slate-200/50 rounded-2xl">
-              <span className="text-[10px] text-slate-500/90 font-mono">🌐</span>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as any)}
-                className="bg-transparent text-xs font-semibold text-indigo-600 focus:outline-none appearance-none pr-1"
-              >
-                <option value="en">English</option>
-                <option value="hi">हिंदी (Hindi)</option>
-                <option value="ta">தமிழ் (Tamil)</option>
-                <option value="te">తెలుగు (Telugu)</option>
-                <option value="kn">ಕನ್ನಡ (Kannada)</option>
-              </select>
-            </div>
+          <button 
+            onClick={() => setFontScale(!fontScale)}
+            className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-2xl border transition text-xs flex-shrink-0 ${fontScale ? 'bg-indigo-600 text-slate-900 border-indigo-500' : 'bg-slate-50 border-slate-200/50 hover:border-slate-300'}`}
+          >
+            <FontIcon className="w-3.5 h-3.5 text-indigo-600" />
+            <span>{t("Large Fonts", "बड़े अक्षर")}</span>
+          </button>
 
-            {/* Sign Out Button */}
-            <button 
-              onClick={async () => {
-                await authApi.signOut();
-              }}
-              className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-500/25 transition text-xs font-medium"
-              title="Sign out of StockSmart AI"
-            >
-              <span>🚪 Sign Out</span>
-            </button>
+          <button 
+            onClick={() => setOneHandedMode(!oneHandedMode)}
+            className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-2xl border transition text-xs flex-shrink-0 ${oneHandedMode ? 'bg-indigo-600 text-slate-900 border-indigo-500 shadow-md' : 'bg-slate-50 border-slate-200/50 hover:border-slate-300'}`}
+          >
+            <span>{t("One-Handed Layout", "एक हाथ की स्क्रीन")}</span>
+          </button>
 
-            {/* Accessibility: Font Scale toggles */}
-            <button 
-              onClick={() => setFontScale(!fontScale)}
-              className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-2xl border transition text-xs ${fontScale ? 'bg-indigo-600 text-slate-900 border-indigo-500' : 'bg-slate-50 border-slate-200/50 hover:border-slate-300'}`}
-            >
-              <FontIcon className="w-3.5 h-3.5 text-indigo-600" />
-              <span>{t("Large Fonts", "बड़े अक्षर")}</span>
-            </button>
-
-            {/* Accessibility: One-handed mode toggle */}
-            <button 
-              onClick={() => setOneHandedMode(!oneHandedMode)}
-              className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-2xl border transition text-xs ${oneHandedMode ? 'bg-indigo-600 text-slate-900 border-indigo-500 shadow-md' : 'bg-slate-50 border-slate-200/50 hover:border-slate-300'}`}
-            >
-              <span>{t("One-Handed Layout", "एक हाथ की स्क्रीन")}</span>
-            </button>
-
-            {/* Trust Badge Display */}
-            <div className="hidden sm:flex items-center space-x-1">
-              <span className="bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded border border-emerald-200 text-[9.5px] font-medium">Fresh Product Badge</span>
-              <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded border border-amber-200 text-[9.5px] font-medium">Fast Delivery Badge</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <main className={`flex-1 max-w-7xl w-full mx-auto p-6 space-y-6 ${oneHandedMode ? 'max-w-4xl border-x border-slate-200/30 shadow-2xl bg-slate-50/20' : ''}`}>
+          <button 
+            onClick={async () => {
+              await authApi.signOut();
+            }}
+            className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-500/25 transition text-xs font-medium flex-shrink-0"
+            title="Sign out of StockSmart AI"
+          >
+            <span>🚪 Sign Out</span>
+          </button>
+        </>
+      }
+    >
+      <div className={`space-y-6 ${oneHandedMode ? 'max-w-4xl border-x border-slate-200/30 shadow-2xl bg-slate-50/20 mx-auto' : ''}`}>
         {isOffline && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-amber-500/5 animate-fade-in">
             <div className="flex items-center space-x-3">
@@ -926,51 +860,6 @@ export const RetailDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Inner Dashboard Tabs */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-slate-200/30 pb-3">
-              <button
-                onClick={() => setDashboardSection('inventory')}
-                className={`px-4 py-2.5 text-xs font-semibold uppercase rounded-2xl border transition-all tracking-wider ${dashboardSection === 'inventory' ? 'bg-indigo-600 text-slate-900 border-indigo-500 shadow-lg shadow-indigo-500/15' : 'bg-slate-50/80 text-slate-500/90 border-slate-200/30 hover:text-slate-900'}`}
-              >
-                {t("📦 SKU Catalog & Restocking", "📦 सामान सूची और स्टॉक")}
-              </button>
-              <button
-                onClick={() => setDashboardSection('khata')}
-                className={`px-4 py-2.5 text-xs font-semibold uppercase rounded-2xl border transition-all tracking-wider ${dashboardSection === 'khata' ? 'bg-indigo-600 text-slate-900 border-indigo-500 shadow-lg shadow-indigo-500/15' : 'bg-slate-50/80 text-slate-500/90 border-slate-200/30 hover:text-slate-900'}`}
-              >
-                {t("📒 Digital Khata Ledger & Loyalty", "📒 उधार खाता बही")}
-              </button>
-              <button
-                onClick={() => setDashboardSection('rbac')}
-                className={`px-4 py-2.5 text-xs font-semibold uppercase rounded-2xl border transition-all tracking-wider ${dashboardSection === 'rbac' ? 'bg-indigo-600 text-slate-900 border-indigo-500 shadow-lg shadow-indigo-500/15' : 'bg-slate-50/80 text-slate-500/90 border-slate-200/30 hover:text-slate-900'}`}
-              >
-                {t("👥 Family Account Roles & Staff", "👥 स्टाफ और परिवार")}
-              </button>
-              <button
-                onClick={() => setDashboardSection('audit')}
-                className={`px-4 py-2.5 text-xs font-semibold uppercase rounded-2xl border transition-all tracking-wider ${dashboardSection === 'audit' ? 'bg-indigo-600 text-slate-900 border-indigo-500 shadow-lg shadow-indigo-500/15' : 'bg-slate-50/80 text-slate-500/90 border-slate-200/30 hover:text-slate-900'}`}
-              >
-                {t("📜 Audit Ledger", "📜 ऑडिट लेजर")}
-              </button>
-              <button
-                onClick={() => setDashboardSection('reports')}
-                className={`px-4 py-2.5 text-xs font-semibold uppercase rounded-2xl border transition-all tracking-wider ${dashboardSection === 'reports' ? 'bg-indigo-600 text-slate-900 border-indigo-500 shadow-lg shadow-indigo-500/15' : 'bg-slate-50/80 text-slate-500/90 border-slate-200/30 hover:text-slate-900'}`}
-              >
-                {t("📊 Business Reports & Tax", "📊 दुकान की रिपोर्ट")}
-              </button>
-              <button
-                onClick={() => setDashboardSection('settings')}
-                className={`px-4 py-2.5 text-xs font-semibold uppercase rounded-2xl border transition-all tracking-wider ${dashboardSection === 'settings' ? 'bg-indigo-600 text-slate-900 border-indigo-500 shadow-lg shadow-indigo-500/15' : 'bg-slate-50/80 text-slate-500/90 border-slate-200/30 hover:text-slate-900'}`}
-              >
-                {t("⚙️ Store Settings & Admin", "⚙️ सेटिंग्स और टैक्स")}
-              </button>
-              <button
-                onClick={() => setDashboardSection('suppliers')}
-                className={`px-4 py-2.5 text-xs font-semibold uppercase rounded-2xl border transition-all tracking-wider ${dashboardSection === 'suppliers' ? 'bg-indigo-600 text-slate-900 border-indigo-500 shadow-lg shadow-indigo-500/15' : 'bg-slate-50/80 text-slate-500/90 border-slate-200/30 hover:text-slate-900'}`}
-              >
-                {t("🚚 Suppliers & Vendors", "🚚 सप्लायर्स")}
-              </button>
-            </div>
 
 
             {/* Sub-tab: Suppliers */}
@@ -1853,7 +1742,7 @@ export const RetailDashboard: React.FC = () => {
             <AIRetailAssistant products={products} batches={batches} />
           </React.Suspense>
         )}
-      </main>
+      </div>
 
       {/* Local Retail footer */}
       <footer className="bg-slate-50 py-8 px-6 border-t border-slate-200/30 mt-12 text-center text-slate-500/90 font-mono text-[10px]">
@@ -1873,6 +1762,6 @@ export const RetailDashboard: React.FC = () => {
           />
         </React.Suspense>
       )}
-    </div>
+    </AppShell>
   );
 };
