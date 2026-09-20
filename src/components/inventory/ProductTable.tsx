@@ -180,12 +180,16 @@ export const ProductTable: React.FC<ProductTableProps> = ({ onEditClick, userRol
                               <Button onClick={() => setSelectedProduct(p)} variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-slate-900" title="View Details">
                                 <Eye className="w-4 h-4" />
                               </Button>
-                              <Button onClick={() => onEditClick(p)} variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-900" title="Edit Product">
-                                <FontIcon className="w-4 h-4" />
-                              </Button>
-                              <Button onClick={() => deleteProduct(p.id, p.name)} variant="ghost" size="icon" className="h-8 w-8 text-rose-600 hover:text-rose-900" title="Delete Product">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              {(userRole === 'Owner' || userRole === 'Manager') && (
+                                <>
+                                  <Button onClick={() => onEditClick(p)} variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-900" title="Edit Product">
+                                    <FontIcon className="w-4 h-4" />
+                                  </Button>
+                                  <Button onClick={() => deleteProduct(p.id, p.name)} variant="ghost" size="icon" className="h-8 w-8 text-rose-600 hover:text-rose-900" title="Delete Product">
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -228,10 +232,14 @@ export const ProductTable: React.FC<ProductTableProps> = ({ onEditClick, userRol
                       
                       <div className="flex items-center space-x-2 pt-2">
                         <Button onClick={() => setSelectedProduct(p)} variant="outline" size="sm" className="flex-1">View</Button>
-                        <Button onClick={() => onEditClick(p)} variant="secondary" size="sm" className="flex-1">Edit</Button>
-                        <Button onClick={() => deleteProduct(p.id, p.name)} variant="destructive" size="sm" className="flex-none px-3">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        {(userRole === 'Owner' || userRole === 'Manager') && (
+                          <>
+                            <Button onClick={() => onEditClick(p)} variant="secondary" size="sm" className="flex-1">Edit</Button>
+                            <Button onClick={() => deleteProduct(p.id, p.name)} variant="destructive" size="sm" className="flex-none px-3">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   );

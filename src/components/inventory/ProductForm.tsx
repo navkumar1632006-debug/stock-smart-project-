@@ -13,7 +13,7 @@ interface ProductFormProps {
 }
 
 export const ProductForm: React.FC<ProductFormProps> = ({ editProduct, onCancelEdit, userRole }) => {
-  const { addProduct, updateProduct } = useInventory();
+  const { addProduct, updateProduct, addBatch } = useInventory();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [name, setName] = useState('');
@@ -62,6 +62,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({ editProduct, onCancelE
           reorderPoint: Number(reorderPoint),
           stockLevel: Number(stockLevel)
         });
+        
+        if (batchNo && stockLevel && expiryDate) {
+          await addBatch(editProduct.id, batchNo, Number(stockLevel), expiryDate);
+        }
+        
         onCancelEdit();
       } else {
         await addProduct({
@@ -204,49 +209,38 @@ export const ProductForm: React.FC<ProductFormProps> = ({ editProduct, onCancelE
                 />
               </div>
               
-              {!editProduct && (
-                <>
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-1.5 block">Initial Quantity</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={stockLevel}
-                      onChange={(e) => setStockLevel(e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-1.5 block">Batch Number (Optional)</label>
-                    <Input
-                      type="text"
-                      value={batchNo}
-                      onChange={(e) => setBatchNo(e.target.value)}
-                      placeholder="e.g., BATCH-001"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-1.5 block">Expiry Date (Optional)</label>
-                    <Input
-                      type="date"
-                      value={expiryDate}
-                      onChange={(e) => setExpiryDate(e.target.value)}
-                    />
-                  </div>
-                </>
-              )}
-
-              {editProduct && (
-                <div>
-                  <label className="text-sm font-medium text-slate-700 mb-1.5 block">Adjust Stock Level (Absolute)</label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={stockLevel}
-                    onChange={(e) => setStockLevel(e.target.value)}
-                  />
-                </div>
-              )}
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+                  {editProduct ? 'Adjust Stock Level (Absolute)' : 'Initial Quantity'}
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={stockLevel}
+                  onChange={(e) => setStockLevel(e.target.value)}
+                  placeholder={editProduct ? '' : '0'}
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+                  {editProduct ? 'Batch Number (New Batch, Optional)' : 'Batch Number (Optional)'}
+                </label>
+                <Input
+                  type="text"
+                  value={batchNo}
+                  onChange={(e) => setBatchNo(e.target.value)}
+                  placeholder="e.g., BATCH-001"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1.5 block">Expiry Date (Optional)</label>
+                <Input
+                  type="date"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                />
+              </div>
             </div>
           </div>
 
