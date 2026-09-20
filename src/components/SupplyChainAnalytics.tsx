@@ -219,7 +219,7 @@ export function SupplyChainAnalytics({ products = [], batches = [], salesLogs = 
                     {risk.analysis}
                   </div>
                   <div className="bg-indigo-500/5 border border-indigo-200 rounded-xl p-3 mt-auto">
-                    <p className="text-[10px] font-mono text-indigo-600 font-medium uppercase tracking-wide mb-1">AI Recommendation</p>
+                    <p className="text-[10px] font-mono text-indigo-600 font-medium uppercase tracking-wide mb-1">Algorithmic Recommendation</p>
                     <p className="text-[11px] text-slate-700">{risk.recommendation}</p>
                   </div>
                 </div>

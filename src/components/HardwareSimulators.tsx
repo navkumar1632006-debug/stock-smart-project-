@@ -228,7 +228,7 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
             {isScanningShelf ? (
               <div className="space-y-2 text-center z-10">
                 <div className="w-8 h-8 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin mx-auto" />
-                <p className="text-[10px] font-mono text-indigo-600 font-medium uppercase tracking-wider">AI Computer Vision Scanning...</p>
+                <p className="text-[10px] font-mono text-indigo-600 font-medium uppercase tracking-wider">Simulating Image Processing...</p>
               </div>
             ) : (
               <div className="text-center z-10 space-y-2">

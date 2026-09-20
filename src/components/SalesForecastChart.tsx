@@ -100,10 +100,10 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
           {data.forecast !== null && (
             <p className="text-emerald-600 font-semibold flex items-center space-x-1">
               <Sparkles className="w-3 h-3 text-emerald-600 mr-0.5 animate-pulse" />
-              AI Forecast: {chartType === 'revenue' ? `₹${data.forecast}` : `${data.forecast} units`}
+              Forecast: {chartType === 'revenue' ? `₹${data.forecast}` : `${data.forecast} units`}
             </p>
           )}
-          <span className={`px-1.5 py-0.5 rounded text-[8px] uppercase font-semibold tracking-wider ${data.type === 'AI Predicted' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-200' : 'bg-indigo-500/10 text-indigo-600 border border-indigo-200'}`}>
+          <span className={`px-1.5 py-0.5 rounded text-[8px] uppercase font-semibold tracking-wider ${data.type === 'Predicted' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-200' : 'bg-indigo-500/10 text-indigo-600 border border-indigo-200'}`}>
             {data.type}
           </span>
         </div>
@@ -112,7 +112,7 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
     return null;
   };
 
-  // Find current active forecast details for XAI breakdown
+  // Find current active forecast details for forecast breakdown
   const currentForecast = selectedProductId !== 'ALL' 
     ? forecastData.find(f => f.productId === selectedProductId) 
     : null;
@@ -235,7 +235,7 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
               activeDot={{ r: 5 }}
             />
             <Area
-              name="AI Forecasted Demand"
+              name="Forecasted Demand"
               type="monotone"
               dataKey="forecast"
               stroke="#10b981"
@@ -249,7 +249,7 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
         </ResponsiveContainer>
       </div>
 
-      {/* Explainable AI Model Breakdown & Experienced Shopkeeper Thoughts Section */}
+      {/* Explainable Forecast Breakdown Section */}
       {selectedProductId !== 'ALL' && (
         <div className="grid grid-cols-1 gap-6 pt-4 border-t border-slate-200/30">
           {salesData.filter(s => s.productId === selectedProductId).length < 10 ? (
@@ -257,7 +257,7 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
               <ShieldAlert className="w-8 h-8 text-slate-400 mb-3" />
               <h4 className="text-sm font-semibold text-slate-700">Insufficient Historical Data</h4>
               <p className="text-[11px] text-slate-500 text-center max-w-sm mt-2">
-                The LightGBM forecasting model requires at least 10 historical sales transactions to generate a statistically significant demand prediction. Keep selling this product to unlock AI insights.
+                The LightGBM forecasting model requires at least 10 historical sales transactions to generate a statistically significant demand prediction. Keep selling this product to unlock forecasting insights.
               </p>
             </div>
           ) : currentForecast ? (
@@ -337,7 +337,7 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
                     <Sparkles className="w-5 h-5 text-amber-600 mt-0.5 animate-pulse flex-shrink-0" />
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
-                        <h4 className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">AI Store Manager Thoughts</h4>
+                        <h4 className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">Store Manager Thoughts</h4>
                         <span className="text-[7.5px] font-mono bg-amber-100 text-amber-600 px-1 py-0.5 rounded font-semibold uppercase">
                           Kirana Wisdom
                         </span>

@@ -153,7 +153,7 @@ export const AIRetailAssistant: React.FC<AIRetailAssistantProps> = ({ products, 
           </div>
           <div>
             <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">AI Retail Copilot</h3>
-            <span className="text-[9px] font-mono text-slate-500/90">Gemini 3.5 Operational Assistant</span>
+            <span className="text-[9px] font-mono text-slate-500/90">Operational Assistant</span>
           </div>
         </div>
 

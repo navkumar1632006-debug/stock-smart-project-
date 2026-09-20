@@ -60,7 +60,7 @@ const BarcodeScanner = React.lazy(() => import('./BarcodeScanner').then(m => ({ 
 const LoadingSkeleton = () => (
   <div className="py-12 text-center text-slate-500/90 font-mono text-[10.5px]">
     <div className="w-5 h-5 bg-indigo-600/10 border border-indigo-400 rounded-full border-t-transparent animate-spin mx-auto mb-2" />
-    <span>Loading dynamic StockSmart AI retail service...</span>
+    <span>Loading dynamic StockSmart retail service...</span>
   </div>
 );
 
@@ -871,7 +871,7 @@ export const RetailDashboard: React.FC = () => {
                           <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">Perishable Shelf Expiry Ledger</h4>
                         </div>
                         <span className="text-[8px] uppercase font-mono bg-amber-50 text-amber-600 px-2 py-0.5 rounded border border-amber-200 font-semibold">
-                          AI Dynamic Pricing
+                          Dynamic Pricing
                         </span>
                       </div>
 
@@ -911,7 +911,7 @@ export const RetailDashboard: React.FC = () => {
                                       </span>
                                       {hasDiscount && (
                                         <span className="text-[8.5px] font-mono text-emerald-600 bg-emerald-500/10 border border-emerald-200 px-1.5 py-0.5 rounded font-semibold">
-                                          AI DISC {Math.round(b.discountRate * 100)}%
+                                          AUTO DISC {Math.round(b.discountRate * 100)}%
                                         </span>
                                       )}
                                     </div>
@@ -940,7 +940,7 @@ export const RetailDashboard: React.FC = () => {
                       <div className="flex justify-between items-center border-b border-slate-200/30 pb-2">
                         <div className="flex items-center space-x-2">
                           <Activity className="w-4 h-4 text-emerald-600 animate-pulse" />
-                          <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">AI Demand Forecast Suggestions</h4>
+                          <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">Demand Forecast Suggestions</h4>
                         </div>
                         <span className="text-[8px] uppercase font-mono bg-indigo-500/10 text-indigo-600 px-2 py-0.5 rounded font-semibold border border-indigo-200">
                           5-Model Weighted
@@ -1166,10 +1166,10 @@ export const RetailDashboard: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-slate-900 text-[11px]">{t("Auto Expiry Discounts", "ऑटोमैटिक डिस्काउंट")}</p>
-                          <p className="text-[9px] text-slate-500/90 font-mono">Progressive AI markdown pricing</p>
+                          <p className="text-[9px] text-slate-500/90 font-mono">Progressive markdown pricing</p>
                         </div>
                         <span className="text-[9px] bg-indigo-500/10 text-indigo-600 px-2 py-0.5 rounded border border-indigo-200 font-semibold font-mono">
-                          ENABLED (AI)
+                          ENABLED (AUTO)
                         </span>
                       </div>
                     </div>

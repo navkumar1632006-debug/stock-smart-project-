@@ -113,7 +113,7 @@ export const LoyaltyManager: React.FC = () => {
 
           <div className="bg-emerald-500/5 border border-emerald-200 p-2.5 rounded-2xl text-[9px] font-mono text-emerald-600 flex items-center space-x-1.5">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-            <span>StockSmart AI recommends launching a 100 extra points weekend coupon on slow categories.</span>
+            <span>System recommends launching a 100 extra points weekend coupon on slow categories.</span>
           </div>
         </div>
       </div>
