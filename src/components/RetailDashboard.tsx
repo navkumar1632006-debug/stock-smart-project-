@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { AppShell } from './layout/AppShell';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
+import { Button } from './ui/Button';
+import { Badge } from './ui/Badge';
+import { EmptyState } from './ui/EmptyState';
 import { Download, Upload,
   Package,
   AlertTriangle,
@@ -89,7 +93,7 @@ export const RetailDashboard: React.FC = () => {
       setErrorMessage(e.message || "Failed to adjust stock.");
     }
   };
-  const [dashboardSection, setDashboardSection] = useState<'inventory' | 'khata' | 'rbac' | 'reports' | 'settings' | 'suppliers' | 'audit'>('inventory');
+  const [dashboardSection, setDashboardSection] = useState<'overview' | 'inventory' | 'khata' | 'rbac' | 'reports' | 'settings' | 'suppliers' | 'audit'>('overview');
 
   // Input Forms States
   const [newProdName, setNewProdName] = useState('');
@@ -685,180 +689,203 @@ export const RetailDashboard: React.FC = () => {
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
             
-            {/* Quick Actions Row */}
-            <div className="flex flex-wrap items-center gap-3 animate-fade-in">
-              <button 
-                onClick={() => setShowScanner(true)}
-                className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-slate-900 px-4 py-2.5 rounded-2xl shadow-lg shadow-indigo-500/20 transition-all font-semibold uppercase tracking-widest text-[10px]"
-              >
-                <ScanBarcode className="w-4 h-4" />
-                <span>Scan QR / Barcode</span>
-              </button>
-            </div>
-
-            {/* AI Morning Briefing & Regional TTS Assistant */}
-            <React.Suspense fallback={<LoadingSkeleton />}>
-              <AIMorningBriefing onRefreshTrigger={fetchAllData} />
-            </React.Suspense>
-
-            {/* Simplified POS Quick Action Checklist (Answering exact operational guidance) */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-200/30/80 rounded-3xl p-6 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-200/30">
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-5 h-5 text-indigo-600 animate-pulse" />
-                  <h3 className="text-xs font-semibold uppercase text-slate-900 tracking-widest">Active Operations Guidance</h3>
-                </div>
-                <span className="text-[10px] font-mono text-slate-500/90 bg-slate-50 px-2.5 py-1 rounded-2xl border border-slate-200/30">
-                  3 Real-time Actions
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Notification Card 1 */}
-                <div className="p-6 bg-slate-50 border border-slate-200/30 rounded-2xl flex flex-col justify-between hover:border-slate-200/50 transition">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[8.5px] uppercase font-mono bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded border border-rose-200 font-semibold">
-                        SKU stockout alert
-                      </span>
-                      <span className="text-[9.5px] font-mono text-slate-500/90">Urgent</span>
-                    </div>
-                    <p className="text-[12px] font-semibold text-slate-900 mt-1.5">Draft Restock for Aashirvaad Atta</p>
-                    <p className="text-[10px] text-slate-500/90">Current stock is only {products.find(p => p.name.includes("Atta"))?.stockLevel || 4} units, falling below critical safety threshold.</p>
+            {dashboardSection === 'overview' && (
+              <div className="space-y-6 animate-fade-in">
+                
+                {/* Header & Quick Actions */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Overview</h1>
+                    <p className="text-sm text-slate-500 mt-1">Your store's real-time performance and active alerts.</p>
                   </div>
-                  <button 
-                    onClick={() => {
-                      setDashboardSection('inventory');
-                      alert("Restock proposal opened! Scroll down to ONDC automated replenishment sheet.");
-                    }}
-                    className="mt-3 w-full py-2 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-slate-900 border border-rose-200 text-[10.5px] font-semibold uppercase rounded-2xl transition"
-                  >
-                    Generate Smart Restock PO
-                  </button>
-                </div>
-
-                {/* Notification Card 2 */}
-                <div className="p-6 bg-slate-50 border border-slate-200/30 rounded-2xl flex flex-col justify-between hover:border-slate-200/50 transition">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[8.5px] uppercase font-mono bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded border border-amber-200 font-semibold">
-                        BATCH EXPIRY NUDGE
-                      </span>
-                      <span className="text-[9.5px] font-mono text-slate-500/90">2 Days Left</span>
-                    </div>
-                    <p className="text-[12px] font-semibold text-slate-900 mt-1.5">Discount Mother Dairy Paneer</p>
-                    <p className="text-[10px] text-slate-500/90">Batch is expiring. Apply 25% automatic discount on the local consumer marketplace to clear stock.</p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button 
+                      variant="primary" 
+                      onClick={() => setShowScanner(true)}
+                    >
+                      <ScanBarcode className="w-4 h-4 mr-2" />
+                      Scan QR / Barcode
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setDashboardSection('inventory')}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Product
+                    </Button>
                   </div>
-                  <button 
-                    onClick={() => {
-                      setActiveTab('marketplace');
-                    }}
-                    className="mt-3 w-full py-2 bg-amber-50 hover:bg-amber-500 text-amber-600 hover:text-slate-900 border border-amber-200 text-[10.5px] font-semibold uppercase rounded-2xl transition"
-                  >
-                    Promote on Local App
-                  </button>
                 </div>
 
-                {/* Notification Card 3 */}
-                <div className="p-6 bg-slate-50 border border-slate-200/30 rounded-2xl flex flex-col justify-between hover:border-slate-200/50 transition">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[8.5px] uppercase font-mono bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded border border-emerald-200 font-semibold">
-                        digital ledger due
-                      </span>
-                      <span className="text-[9.5px] font-mono text-slate-500/90">Repayment</span>
-                    </div>
-                    <p className="text-[12px] font-semibold text-slate-900 mt-1.5">Outstanding Credit: Amit Patel</p>
-                    <p className="text-[10px] text-slate-500/90">Ledger balance ₹3,100 overdue. Dispatch simulated WhatsApp payment nudge.</p>
+                {/* AI Morning Briefing & Regional TTS Assistant */}
+                <React.Suspense fallback={<LoadingSkeleton />}>
+                  <AIMorningBriefing onRefreshTrigger={fetchAllData} />
+                </React.Suspense>
+
+                {/* KPI Metrics Ribbon */}
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                  {/* Sales Metric */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-xs font-semibold uppercase text-slate-500">Gross Revenue</CardTitle>
+                      <DollarSign className="w-4 h-4 text-emerald-600" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-slate-900">₹{metrics.totalSalesRev}</div>
+                      <p className="text-xs text-emerald-600 flex items-center mt-1">
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                        +14.5% vs last week
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Critical Stockout Alerts */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-xs font-semibold uppercase text-slate-500">Stockouts</CardTitle>
+                      <AlertOctagon className="w-4 h-4 text-rose-600 animate-pulse" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className={`text-2xl font-bold ${metrics.criticalStockouts > 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                        {metrics.criticalStockouts} SKUs
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Below safety reorder trigger
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Expiry Warning count */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-xs font-semibold uppercase text-slate-500">Near Expiry</CardTitle>
+                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className={`text-2xl font-bold ${metrics.activeExpirations > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
+                        {metrics.activeExpirations} Batches
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Expiring in &lt; 5 days
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Wastage Prevented */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-xs font-semibold uppercase text-slate-500">Waste Recaptured</CardTitle>
+                      <Tag className="w-4 h-4 text-indigo-600" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-indigo-600">₹{metrics.wastagePrevented}</div>
+                      <p className="text-xs text-emerald-600 flex items-center mt-1">
+                        Saved via Dynamic Discounts
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Business Health Score */}
+                  <Card className="cursor-pointer hover:border-blue-300 transition-colors" onClick={() => alert("Business Score: 84%\n\n• Stock Turnover Rate: 88% (Excellent)\n• Waste Avoidance: 91% (Optimal)\n• Customer Credit Book Health: 79% (Nudges needed)\n• Customer Loyalty Multiplier: 82%")}>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-xs font-semibold uppercase text-slate-500">Health Score</CardTitle>
+                      <Activity className="w-4 h-4 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-slate-900">84%</div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Click to view audit
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Simplified POS Quick Action Checklist */}
+                <div className="mt-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold text-slate-900 flex items-center">
+                      <Sparkles className="w-5 h-5 text-indigo-600 mr-2 animate-pulse" />
+                      Active Operations Guidance
+                    </h2>
+                    <Badge variant="secondary">3 Real-time Actions</Badge>
                   </div>
-                  <button 
-                    onClick={() => {
-                      setDashboardSection('khata');
-                    }}
-                    className="mt-3 w-full py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-slate-900 border border-emerald-200 text-[10.5px] font-semibold uppercase rounded-2xl transition"
-                  >
-                    Open Credit ledger Book
-                  </button>
-                </div>
-              </div>
-            </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Notification Card 1 */}
+                    <Card className="flex flex-col justify-between">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between mb-3">
+                          <Badge variant="destructive">Stockout Alert</Badge>
+                          <span className="text-xs font-medium text-slate-500">Urgent</span>
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 mb-1">Draft Restock for Aashirvaad Atta</h4>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          Current stock is only {products.find(p => p.name.includes("Atta"))?.stockLevel || 4} units, falling below critical safety threshold.
+                        </p>
+                      </CardContent>
+                      <div className="p-4 pt-0">
+                        <Button 
+                          variant="destructive" 
+                          className="w-full text-xs"
+                          onClick={() => {
+                            setDashboardSection('inventory');
+                            alert("Restock proposal opened! Scroll down to ONDC automated replenishment sheet.");
+                          }}
+                        >
+                          Generate Smart Restock PO
+                        </Button>
+                      </div>
+                    </Card>
 
-            {/* KPI Metrics Ribbon */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-              {/* Sales Metric */}
-              <div className="bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-3xl p-6 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-slate-500/90">
-                  <span className="text-[10px] uppercase font-mono tracking-wider font-semibold">Gross Revenue</span>
-                  <DollarSign className="w-4 h-4 text-emerald-600" />
-                </div>
-                <div className="mt-2.5">
-                  <h3 className="text-xl font-semibold text-slate-900">₹{metrics.totalSalesRev}</h3>
-                  <p className="text-[9px] font-mono text-emerald-600 flex items-center mt-1">
-                    <TrendingUp className="w-3 h-3 mr-0.5" />
-                    +14.5% vs last week
-                  </p>
-                </div>
-              </div>
+                    {/* Notification Card 2 */}
+                    <Card className="flex flex-col justify-between">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between mb-3">
+                          <Badge variant="warning">Expiry Nudge</Badge>
+                          <span className="text-xs font-medium text-slate-500">2 Days Left</span>
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 mb-1">Discount Mother Dairy Paneer</h4>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          Batch is expiring. Apply 25% automatic discount on the local consumer marketplace to clear stock.
+                        </p>
+                      </CardContent>
+                      <div className="p-4 pt-0">
+                        <Button 
+                          variant="secondary" 
+                          className="w-full text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border-none"
+                          onClick={() => setActiveTab('marketplace')}
+                        >
+                          Promote on Local App
+                        </Button>
+                      </div>
+                    </Card>
 
-              {/* Critical Stockout Alerts */}
-              <div className="bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-3xl p-6 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-slate-500/90">
-                  <span className="text-[10px] uppercase font-mono tracking-wider font-semibold">Critical Stockouts</span>
-                  <AlertOctagon className="w-4 h-4 text-rose-600 animate-pulse" />
+                    {/* Notification Card 3 */}
+                    <Card className="flex flex-col justify-between">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between mb-3">
+                          <Badge variant="success">Ledger Due</Badge>
+                          <span className="text-xs font-medium text-slate-500">Repayment</span>
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 mb-1">Outstanding Credit: Amit Patel</h4>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          Ledger balance ₹3,100 overdue. Dispatch simulated WhatsApp payment nudge.
+                        </p>
+                      </CardContent>
+                      <div className="p-4 pt-0">
+                        <Button 
+                          variant="secondary" 
+                          className="w-full text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-none"
+                          onClick={() => setDashboardSection('khata')}
+                        >
+                          Open Credit Ledger
+                        </Button>
+                      </div>
+                    </Card>
+                  </div>
                 </div>
-                <div className="mt-2.5">
-                  <h3 className={`text-xl font-semibold ${metrics.criticalStockouts > 0 ? 'text-rose-600' : 'text-slate-900'}`}>
-                    {metrics.criticalStockouts} SKUs
-                  </h3>
-                  <p className="text-[9px] font-mono text-slate-500/90 mt-1">
-                    Below safety reorder trigger
-                  </p>
-                </div>
-              </div>
 
-              {/* Expiry Warning count */}
-              <div className="bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-3xl p-6 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-slate-500/90">
-                  <span className="text-[10px] uppercase font-mono tracking-wider font-semibold">Near Expiry Warns</span>
-                  <AlertTriangle className="w-4 h-4 text-amber-600" />
-                </div>
-                <div className="mt-2.5">
-                  <h3 className={`text-xl font-semibold ${metrics.activeExpirations > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
-                    {metrics.activeExpirations} Batches
-                  </h3>
-                  <p className="text-[9px] font-mono text-slate-500/90 mt-1">
-                    Expiring in less than 5 days
-                  </p>
-                </div>
               </div>
-
-              {/* Wastage Prevented */}
-              <div className="bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-3xl p-6 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-slate-500/90">
-                  <span className="text-[10px] uppercase font-mono tracking-wider font-semibold">Waste Recaptured</span>
-                  <Tag className="w-4 h-4 text-indigo-600" />
-                </div>
-                <div className="mt-2.5">
-                  <h3 className="text-xl font-semibold text-indigo-600">₹{metrics.wastagePrevented}</h3>
-                  <p className="text-[9px] font-mono text-emerald-600 mt-1">
-                    Saved via Dynamic Discounts
-                  </p>
-                </div>
-              </div>
-
-              {/* Business Health Score */}
-              <div className="bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-3xl p-6 flex flex-col justify-between cursor-pointer hover:border-slate-200/50 transition" onClick={() => alert("Business Score: 84%\n\n• Stock Turnover Rate: 88% (Excellent)\n• Waste Avoidance: 91% (Optimal)\n• Customer Credit Book Health: 79% (Nudges needed)\n• Customer Loyalty Multiplier: 82%")}>
-                <div className="flex items-center justify-between text-slate-500/90">
-                  <span className="text-[10px] uppercase font-mono tracking-wider font-semibold">Business Health Score</span>
-                  <Activity className="w-4 h-4 text-blue-400" />
-                </div>
-                <div className="mt-2.5">
-                  <h3 className="text-xl font-semibold text-slate-900">84%</h3>
-                  <p className="text-[9px] font-mono text-slate-500/90 mt-1">
-                    Click to view metric audit
-                  </p>
-                </div>
-              </div>
-            </div>
+            )}
 
 
 

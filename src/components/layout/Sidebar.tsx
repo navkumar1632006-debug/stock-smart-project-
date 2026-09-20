@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export type ActiveTab = 'dashboard' | 'marketplace' | 'assistant';
-export type DashboardSection = 'inventory' | 'khata' | 'rbac' | 'reports' | 'settings' | 'suppliers' | 'audit';
+export type DashboardSection = 'overview' | 'inventory' | 'khata' | 'rbac' | 'reports' | 'settings' | 'suppliers' | 'audit';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -110,6 +110,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <NavItem 
               icon={Activity} 
               label="Overview" 
+              isActive={isDashboardActive && dashboardSection === 'overview'} 
+              onClick={() => navigateTo('dashboard', 'overview')} 
+            />
+            <NavItem 
+              icon={Package} 
+              label="Inventory" 
               isActive={isDashboardActive && dashboardSection === 'inventory'} 
               onClick={() => navigateTo('dashboard', 'inventory')} 
             />
