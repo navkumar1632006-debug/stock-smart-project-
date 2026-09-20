@@ -256,5 +256,40 @@ export const inventoryService = {
         reference_id: `New batch ${batchNumber} added`
       }]);
     }
+  },
+
+  async markBatchExpired(batchId: string, productId: string, currentQty: number): Promise<void> {
+    const storeId = await storeService.getCurrentStoreId();
+
+    // 1. Update batch current_quantity to 0
+    const { error: batchError } = await supabase
+      .from('batches')
+      .update({ current_quantity: 0 })
+      .eq('id', batchId)
+      .eq('store_id', storeId);
+
+    if (batchError) {
+      console.error('Failed to update batch:', batchError);
+      throw new Error('Failed to update batch status.');
+    }
+
+    // 2. Deduct from total stock
+    const { data, error } = await supabase.rpc('process_stock_adjustment', {
+      p_store_id: storeId,
+      p_product_id: productId,
+      p_action: 'deduct',
+      p_quantity: currentQty,
+      p_notes: `Batch ${batchId} marked as expired`,
+      p_idempotency_key: crypto.randomUUID()
+    });
+
+    if (error) {
+      console.error('Failed to deduct expired stock:', error);
+      throw new Error(`Failed to deduct stock. Error: ${error.message}`);
+    }
+
+    if (data && typeof data === 'object' && 'success' in data && data.success === false) {
+      throw new Error((data as any).error || 'Adjustment failed');
+    }
   }
 };

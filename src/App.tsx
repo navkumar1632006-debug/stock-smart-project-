@@ -7,6 +7,8 @@ import { ResetPassword } from './pages/ResetPassword';
 import { useAuth } from './hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
+import { InventoryProvider } from './context/InventoryContext';
+
 export default function App() {
   const { isAuthenticated, isLoading, error } = useAuth();
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -50,9 +52,11 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
-      <OnboardingWalkthrough />
-      <RetailDashboard />
-    </div>
+    <InventoryProvider>
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+        <OnboardingWalkthrough />
+        <RetailDashboard />
+      </div>
+    </InventoryProvider>
   );
 }

@@ -15,6 +15,7 @@ interface InventoryContextType {
   deleteProduct: (id: string, name: string) => Promise<void>;
   adjustStock: (id: string, action: 'add' | 'deduct', quantity: number) => Promise<void>;
   addBatch: (productId: string, batchNo: string, quantity: number, expiryDate: string) => Promise<void>;
+  markBatchExpired: (batchId: string, productId: string, currentQty: number) => Promise<void>;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -83,6 +84,11 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     await refreshData();
   };
 
+  const markBatchExpired = async (batchId: string, productId: string, currentQty: number) => {
+    await inventoryService.markBatchExpired(batchId, productId, currentQty);
+    await refreshData();
+  };
+
   return (
     <InventoryContext.Provider value={{
       products,
@@ -95,7 +101,8 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       updateProduct,
       deleteProduct,
       adjustStock,
-      addBatch
+      addBatch,
+      markBatchExpired
     }}>
       {children}
     </InventoryContext.Provider>

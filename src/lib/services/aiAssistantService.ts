@@ -1,5 +1,6 @@
 import { Product, InventoryBatch, SaleRecord } from '../../types/retail';
 import { inventoryIntelligenceService } from './inventoryIntelligenceService';
+import { calculateDynamicEnsembleForecast } from '../forecaster';
 
 export const aiAssistantService = {
   generateResponse(
@@ -34,7 +35,7 @@ export const aiAssistantService = {
     }
 
     if (lowerQuery.includes('reorder') || lowerQuery.includes('recommendation')) {
-      const forecasts = products.map(p => inventoryIntelligenceService.generateForecast(p, salesLogs));
+      const forecasts = products.map(p => calculateDynamicEnsembleForecast(p, salesLogs, batches, products));
       const critical = forecasts.filter(f => f.reorderUrgency === 'Critical' && f.reorderQuantity > 0);
       
       if (critical.length === 0) return "✅ Based on your current sales velocity and stock levels, there are no urgent reorder requirements right now.";
@@ -132,7 +133,7 @@ export const aiAssistantService = {
     }
 
     if (lowerQuery.includes('risk')) {
-      const forecasts = products.map(p => inventoryIntelligenceService.generateForecast(p, salesLogs));
+      const forecasts = products.map(p => calculateDynamicEnsembleForecast(p, salesLogs, batches, products));
       const critical = forecasts.filter(f => f.reorderUrgency === 'Critical');
       
       let response = `🔍 **Inventory Risk Profile:**\n\n`;

@@ -30,6 +30,12 @@ export const rbacService = {
    * Invites a new staff member by email using the secure RPC
    */
   async inviteStaff(storeId: string, email: string, role: string): Promise<{success: boolean, message: string}> {
+    if (!email || !email.includes('@')) {
+      throw new Error('Invalid email address provided.');
+    }
+    if (!storeId) {
+      throw new Error('Store ID is required.');
+    }
     const { data, error } = await supabase.rpc('invite_staff_by_email', {
       staff_email: email,
       assigned_role: role,

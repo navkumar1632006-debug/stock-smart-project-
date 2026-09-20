@@ -14,6 +14,14 @@ export interface Product {
   isFreshProduct?: boolean;
 }
 
+export interface Supplier {
+  id: string;
+  storeId: string;
+  name: string;
+  contactInfo: string;
+  reliabilityScore: number;
+}
+
 export interface InventoryBatch {
   id: string;
   productId: string;

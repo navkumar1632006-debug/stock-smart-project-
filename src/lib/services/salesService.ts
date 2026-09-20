@@ -63,7 +63,8 @@ export const salesService = {
     }
   },
 
-  async processCheckout(items: { product_id: string, quantity: number, total_price: number }[], channel: string = 'In-Store'): Promise<void> {
+  async processCheckout(items: { product_id: string, quantity: number, total_price: number }[], channel: string = 'In-Store'): Promise<string[]> {
+    const saleIds: string[] = [];
     // Process items sequentially using the single-item RPC
     for (const item of items) {
       const storeId = await storeService.getCurrentStoreId();
@@ -83,9 +84,17 @@ export const salesService = {
         throw new Error(`POS Checkout Item Failed for ${item.product_id}: ${error.message}`);
       }
       
-      if (data && typeof data === 'object' && 'success' in data && data.success === false) {
-        throw new Error((data as any).error || 'Transaction failed');
+      if (data && typeof data === 'object') {
+        if ('success' in data && data.success === false) {
+           throw new Error((data as any).error || 'Transaction failed');
+        }
+        if ('sale_id' in data) {
+           saleIds.push((data as any).sale_id);
+        } else if ('id' in data) {
+           saleIds.push((data as any).id);
+        }
       }
     }
+    return saleIds;
   }
 };
