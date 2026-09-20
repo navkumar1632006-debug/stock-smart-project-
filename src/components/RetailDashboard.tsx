@@ -4,6 +4,9 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
 import { EmptyState } from './ui/EmptyState';
+import { DashboardPageHeader } from './dashboard/DashboardPageHeader';
+import { MetricCard } from './dashboard/MetricCard';
+import { OperationsGuidanceCard } from './dashboard/OperationsGuidanceCard';
 import { Download, Upload,
   Package,
   AlertTriangle,
@@ -693,28 +696,28 @@ export const RetailDashboard: React.FC = () => {
               <div className="space-y-6 animate-fade-in">
                 
                 {/* Header & Quick Actions */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Overview</h1>
-                    <p className="text-sm text-slate-500 mt-1">Your store's real-time performance and active alerts.</p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Button 
-                      variant="primary" 
-                      onClick={() => setShowScanner(true)}
-                    >
-                      <ScanBarcode className="w-4 h-4 mr-2" />
-                      Scan QR / Barcode
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => setDashboardSection('inventory')}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Product
-                    </Button>
-                  </div>
-                </div>
+                <DashboardPageHeader 
+                  title="Overview" 
+                  subtitle="Your store's real-time performance and active alerts."
+                  actions={
+                    <>
+                      <Button 
+                        variant="primary" 
+                        onClick={() => setShowScanner(true)}
+                      >
+                        <ScanBarcode className="w-4 h-4 mr-2" />
+                        Scan QR / Barcode
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => setDashboardSection('inventory')}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Product
+                      </Button>
+                    </>
+                  }
+                />
 
                 {/* AI Morning Briefing & Regional TTS Assistant */}
                 <React.Suspense fallback={<LoadingSkeleton />}>
@@ -723,66 +726,36 @@ export const RetailDashboard: React.FC = () => {
 
                 {/* KPI Metrics Ribbon */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* Sales Metric */}
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-xs font-semibold uppercase text-slate-500">Gross Revenue</CardTitle>
-                      <DollarSign className="w-4 h-4 text-emerald-600" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-slate-900">₹{metrics.totalSalesRev}</div>
-                      <p className="text-xs text-emerald-600 flex items-center mt-1">
-                        <TrendingUp className="w-3 h-3 mr-1" />
-                        Live
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <MetricCard
+                    title="Gross Revenue"
+                    icon={<DollarSign className="w-4 h-4 text-emerald-600" />}
+                    value={`₹${metrics.totalSalesRev}`}
+                    subtext={<><TrendingUp className="w-3 h-3 mr-1" /> Live</>}
+                  />
 
-                  {/* Critical Stockout Alerts */}
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-xs font-semibold uppercase text-slate-500">Stockouts</CardTitle>
-                      <AlertOctagon className="w-4 h-4 text-rose-600 animate-pulse" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className={`text-2xl font-bold ${metrics.criticalStockouts > 0 ? 'text-rose-600' : 'text-slate-900'}`}>
-                        {metrics.criticalStockouts} SKUs
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Below safety reorder trigger
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <MetricCard
+                    title="Stockouts"
+                    icon={<AlertOctagon className="w-4 h-4 text-rose-600 animate-pulse" />}
+                    value={`${metrics.criticalStockouts} SKUs`}
+                    valueColor={metrics.criticalStockouts > 0 ? 'text-rose-600' : 'text-slate-900'}
+                    subtext="Below safety reorder trigger"
+                  />
 
-                  {/* Expiry Warning count */}
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-xs font-semibold uppercase text-slate-500">Near Expiry</CardTitle>
-                      <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className={`text-2xl font-bold ${metrics.activeExpirations > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
-                        {metrics.activeExpirations} Batches
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Expiring in &lt; 5 days
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <MetricCard
+                    title="Near Expiry"
+                    icon={<AlertTriangle className="w-4 h-4 text-amber-600" />}
+                    value={`${metrics.activeExpirations} Batches`}
+                    valueColor={metrics.activeExpirations > 0 ? 'text-amber-600' : 'text-slate-900'}
+                    subtext="Expiring in < 5 days"
+                  />
 
-                  {/* Wastage Prevented */}
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-xs font-semibold uppercase text-slate-500">Waste Recaptured</CardTitle>
-                      <Tag className="w-4 h-4 text-indigo-600" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-indigo-600">₹{metrics.wastagePrevented}</div>
-                      <p className="text-xs text-emerald-600 flex items-center mt-1">
-                        Saved via Dynamic Discounts
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <MetricCard
+                    title="Waste Recaptured"
+                    icon={<Tag className="w-4 h-4 text-indigo-600" />}
+                    value={`₹${metrics.wastagePrevented}`}
+                    valueColor="text-indigo-600"
+                    subtext="Saved via Dynamic Discounts"
+                  />
                 </div>
 
                 {/* Active Operations Guidance */}
@@ -817,52 +790,31 @@ export const RetailDashboard: React.FC = () => {
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* Notification Card 1: Dynamic Stockout */}
                             {overviewLowStock && (
-                              <Card className="flex flex-col justify-between">
-                                <CardContent className="pt-6">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <Badge variant="destructive">Stockout Alert</Badge>
-                                    <span className="text-xs font-medium text-slate-500">Urgent</span>
-                                  </div>
-                                  <h4 className="text-sm font-bold text-slate-900 mb-1">Draft Restock for {overviewLowStock.name}</h4>
-                                  <p className="text-xs text-slate-600 leading-relaxed">
-                                    Current stock is only {overviewLowStock.stockLevel} units, falling below critical safety threshold of {overviewLowStock.reorderPoint}.
-                                  </p>
-                                </CardContent>
-                                <div className="p-4 pt-0">
-                                  <Button 
-                                    variant="destructive" 
-                                    className="w-full text-xs"
-                                    onClick={() => setDashboardSection('inventory')}
-                                  >
-                                    Generate Smart Restock PO
-                                  </Button>
-                                </div>
-                              </Card>
+                              <OperationsGuidanceCard
+                                badgeVariant="destructive"
+                                badgeText="Stockout Alert"
+                                urgencyText="Urgent"
+                                title={`Draft Restock for ${overviewLowStock.name}`}
+                                description={`Current stock is only ${overviewLowStock.stockLevel} units, falling below critical safety threshold of ${overviewLowStock.reorderPoint}.`}
+                                buttonVariant="destructive"
+                                buttonText="Generate Smart Restock PO"
+                                onAction={() => setDashboardSection('inventory')}
+                              />
                             )}
 
                             {/* Notification Card 2: Dynamic Expiry */}
                             {overviewExpiring && (
-                              <Card className="flex flex-col justify-between">
-                                <CardContent className="pt-6">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <Badge variant="warning">Expiry Nudge</Badge>
-                                    <span className="text-xs font-medium text-slate-500">{overviewExpiringDays} Days Left</span>
-                                  </div>
-                                  <h4 className="text-sm font-bold text-slate-900 mb-1">Discount {overviewExpiring.productName}</h4>
-                                  <p className="text-xs text-slate-600 leading-relaxed">
-                                    Batch {overviewExpiring.batchNumber} is expiring. Apply automatic discount on the local consumer marketplace to clear stock.
-                                  </p>
-                                </CardContent>
-                                <div className="p-4 pt-0">
-                                  <Button 
-                                    variant="secondary" 
-                                    className="w-full text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border-none"
-                                    onClick={() => setActiveTab('marketplace')}
-                                  >
-                                    Promote on Local App
-                                  </Button>
-                                </div>
-                              </Card>
+                              <OperationsGuidanceCard
+                                badgeVariant="warning"
+                                badgeText="Expiry Nudge"
+                                urgencyText={`${overviewExpiringDays} Days Left`}
+                                title={`Discount ${overviewExpiring.productName}`}
+                                description={`Batch ${overviewExpiring.batchNumber} is expiring. Apply automatic discount on the local consumer marketplace to clear stock.`}
+                                buttonVariant="secondary"
+                                buttonClassName="bg-amber-50 text-amber-700 hover:bg-amber-100 border-none"
+                                buttonText="Promote on Local App"
+                                onAction={() => setActiveTab('marketplace')}
+                              />
                             )}
                           </div>
                         )}
