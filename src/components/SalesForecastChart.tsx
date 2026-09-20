@@ -142,14 +142,14 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
   };
 
   return (
-    <div className="glass-card p-6 rounded-3xl border border-slate-200/30 flex flex-col space-y-6">
+    <div className="bg-white p-6 rounded-3xl border border-slate-200/50 shadow-sm flex flex-col space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
         <div className="flex items-center space-x-2">
           <Calendar className="w-5 h-5 text-indigo-600" />
           <div>
-            <h3 className="text-sm font-semibold text-slate-900 tracking-tight uppercase">Demand Prediction & Sales Flow</h3>
-            <p className="text-[10px] text-slate-500/90 font-mono">15-Day Historical Actuals vs. 7-Day Weighted Ensemble AI Forecast</p>
+            <h3 className="text-sm font-semibold text-slate-900 tracking-tight uppercase">Sales Flow</h3>
+            <p className="text-[10px] text-slate-500/90 font-mono">15-Day Historical Sales Actuals</p>
           </div>
         </div>
 
@@ -172,7 +172,7 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
               onClick={() => setChartType('revenue')}
               className={`px-3 py-1 rounded-xl text-[10px] font-semibold uppercase transition-all ${
                 chartType === 'revenue'
-                  ? 'bg-indigo-600 text-slate-900 shadow'
+                  ? 'bg-blue-600 text-white shadow'
                   : 'text-slate-500/90 hover:text-slate-900'
               }`}
             >
@@ -182,7 +182,7 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
               onClick={() => setChartType('volume')}
               className={`px-3 py-1 rounded-xl text-[10px] font-semibold uppercase transition-all ${
                 chartType === 'volume'
-                  ? 'bg-indigo-600 text-slate-900 shadow'
+                  ? 'bg-blue-600 text-white shadow'
                   : 'text-slate-500/90 hover:text-slate-900'
               }`}
             >
@@ -206,7 +206,7 @@ export const SalesForecastChart: React.FC<SalesForecastChartProps> = ({
                 <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" opacity={0.3} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.3} />
             <XAxis
               dataKey="date"
               stroke="#64748b"

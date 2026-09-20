@@ -74,19 +74,19 @@ export const SmartReorderPO: React.FC<SmartReorderProps> = ({ products, salesLog
   };
 
   return (
-    <div className="bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-3xl p-6 space-y-4">
+    <div className="bg-white shadow-sm border border-slate-200/50 rounded-3xl p-6 space-y-4">
       <div className="flex items-center justify-between border-b border-slate-200/30 pb-3">
         <div className="flex items-center space-x-2.5">
-          <div className="p-2.5 bg-indigo-600/10 rounded-2xl border border-indigo-200">
-            <ShoppingCart className="w-5 h-5 text-indigo-600" />
+          <div className="p-2.5 bg-blue-600/10 rounded-2xl border border-blue-200">
+            <ShoppingCart className="w-5 h-5 text-blue-600" />
           </div>
           <div>
             <h3 className="text-xs font-semibold uppercase text-slate-900 tracking-wider">Automated Smart Reordering</h3>
             <p className="text-[10px] text-slate-500/90 font-mono">B2B procurement & supplier integration</p>
           </div>
         </div>
-        <span className="text-[9px] font-mono text-indigo-600 bg-indigo-500/10 px-2 py-0.5 rounded-full font-medium">
-          ONDC Integrated
+        <span className="text-[9px] font-mono text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-medium">
+          Auto PO Draft
         </span>
       </div>
 
@@ -99,7 +99,7 @@ export const SmartReorderPO: React.FC<SmartReorderProps> = ({ products, salesLog
 
       {isLoading ? (
         <div className="py-8 text-center space-y-1.5">
-          <Loader className="w-5 h-5 text-indigo-600 animate-spin mx-auto" />
+          <Loader className="w-5 h-5 text-blue-600 animate-spin mx-auto" />
           <p className="text-[10px] font-mono text-slate-400">Drafting Purchase Orders based on replenishment criteria...</p>
         </div>
       ) : draft && draft.items && draft.items.length > 0 ? (
@@ -135,7 +135,7 @@ export const SmartReorderPO: React.FC<SmartReorderProps> = ({ products, salesLog
             </div>
             <div className="flex justify-between text-slate-900 font-medium text-[11.5px] border-t border-dashed border-slate-200/50 pt-1.5">
               <span>Total Draft PO Value</span>
-              <span className="text-indigo-600 flex items-center">
+              <span className="text-blue-600 flex items-center">
                 <IndianRupee className="w-3 h-3 mr-0.5" />
                 {Math.round(draft.totalPayable + draft.totalGst)}
               </span>
@@ -145,7 +145,7 @@ export const SmartReorderPO: React.FC<SmartReorderProps> = ({ products, salesLog
           <button
             onClick={handleApprovePO}
             disabled={isApproving}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800/40 text-slate-900 font-semibold text-xs uppercase tracking-wider py-2.5 rounded-2xl transition duration-200 flex items-center justify-center space-x-2"
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800/40 text-slate-900 font-semibold text-xs uppercase tracking-wider py-2.5 rounded-2xl transition duration-200 flex items-center justify-center space-x-2"
           >
             {isApproving ? (
               <>

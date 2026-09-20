@@ -152,7 +152,7 @@ export function DemandForecastDashboard({ products, salesLogs, batches = [] }: P
           { label: 'Expiring Soon', value: kpis.expiring, icon: <Clock className="w-4 h-4" />, color: 'text-orange-500' },
           { label: 'Avg Coverage', value: `${kpis.avgCoverage}d`, icon: <ShieldAlert className="w-4 h-4" />, color: 'text-blue-600' },
         ].map((kpi, i) => (
-          <div key={i} className="glass-card p-4 rounded-2xl border border-slate-200/50 bg-white hover:shadow-md transition">
+          <div key={i} className="bg-white shadow-sm p-4 rounded-2xl border border-slate-200/50 bg-white hover:shadow-md transition">
             <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-slate-500 mb-2 whitespace-nowrap overflow-hidden text-ellipsis">
               {kpi.icon} {kpi.label}
             </div>
@@ -163,7 +163,7 @@ export function DemandForecastDashboard({ products, salesLogs, batches = [] }: P
 
       {/* Analytics Visualization */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card p-5 rounded-3xl border border-slate-200/50 bg-white">
+        <div className="bg-white shadow-sm p-5 rounded-3xl border border-slate-200/50 bg-white">
           <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2"><BarChart2 className="w-4 h-4 text-indigo-500" /> Top Selling Products (30 Days)</h3>
           <div className="h-64">
             {topSellingData.length > 0 ? (
@@ -182,7 +182,7 @@ export function DemandForecastDashboard({ products, salesLogs, batches = [] }: P
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-3xl border border-slate-200/50 bg-white">
+        <div className="bg-white shadow-sm p-5 rounded-3xl border border-slate-200/50 bg-white">
           <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2"><PieChartIcon className="w-4 h-4 text-rose-500" /> Inventory Risk Distribution</h3>
           <div className="h-64">
             {riskPieData.length > 0 ? (
@@ -205,7 +205,7 @@ export function DemandForecastDashboard({ products, salesLogs, batches = [] }: P
       </div>
 
       {/* Main Table Section */}
-      <div className="glass-card rounded-3xl border border-slate-200/50 overflow-hidden bg-white shadow-sm flex flex-col lg:flex-row">
+      <div className="bg-white shadow-sm rounded-3xl border border-slate-200/50 overflow-hidden bg-white shadow-sm flex flex-col lg:flex-row">
         
         {/* Table Content */}
         <div className="flex-1 min-w-0 flex flex-col border-r border-slate-100">
@@ -364,14 +364,14 @@ export function DemandForecastDashboard({ products, salesLogs, batches = [] }: P
                 )}
               </div>
 
-              <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-lg">
+              <div className="bg-indigo-50 border border-indigo-200 text-indigo-900 p-5 rounded-2xl shadow-sm">
                 <h4 className="text-[10px] text-slate-400 font-mono uppercase mb-2">Smart Action Engine</h4>
-                <p className="text-sm font-semibold leading-relaxed text-indigo-50 mb-4">{selectedProduct.smartRecommendation}</p>
+                <p className="text-sm font-semibold leading-relaxed text-indigo-800 mb-4">{selectedProduct.smartRecommendation}</p>
                 
                 {selectedProduct.recommendedReorderQuantity > 0 && (
                   <div className="flex items-center justify-between border-t border-slate-700 pt-4">
                     <span className="text-sm font-mono text-slate-300">Suggested PO</span>
-                    <span className="text-xl font-black text-indigo-400">{selectedProduct.recommendedReorderQuantity} Units</span>
+                    <span className="text-xl font-black text-indigo-600">{selectedProduct.recommendedReorderQuantity} Units</span>
                   </div>
                 )}
               </div>

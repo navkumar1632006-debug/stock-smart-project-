@@ -86,7 +86,7 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
   ];
 
   return (
-    <Card className="bg-gradient-to-br from-indigo-950/40 via-slate-900/40 to-slate-950 border-indigo-200 shadow-2xl relative overflow-hidden">
+    <Card className="bg-white border border-slate-200/50 shadow-sm relative overflow-hidden">
       {/* Background radial glow */}
       <div className="absolute -top-12 -right-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
       
@@ -97,7 +97,7 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">AI Daily Morning Briefing</h3>
+              <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">AI Daily Morning Briefing</h3>
               <Badge variant="default" className="bg-indigo-500/20 border-indigo-200">
                 Copilot Mode
               </Badge>
@@ -161,8 +161,8 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
               <p className="text-sm font-medium text-slate-800">Synthesizing AI Intelligence</p>
               <p className="text-xs font-mono text-slate-500/90">Analyzing inventory metrics, forecasting demands, and generating your morning brief...</p>
             </div>
-            <div className="w-64 h-1.5 bg-white rounded-full overflow-hidden mt-2">
-              <div className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 rounded-full w-full origin-left animate-pulse scale-x-50"></div>
+            <div className="w-64 h-1.5 bg-slate-100 rounded-full overflow-hidden mt-2">
+              <div className="h-full bg-blue-600 rounded-full w-full origin-left animate-pulse scale-x-50"></div>
             </div>
           </div>
         ) : errorMsg ? (

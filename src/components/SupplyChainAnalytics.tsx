@@ -114,12 +114,12 @@ export function SupplyChainAnalytics({ products = [], batches = [], salesLogs = 
           <div className="h-64 min-h-[16rem]">
             <ResponsiveContainer width="100%" height="100%" minWidth={1}>
               <BarChart data={inventoryData} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={10} tick={{ fill: '#64748b' }} angle={-45} textAnchor="end" />
                 <YAxis stroke="#64748b" fontSize={10} tick={{ fill: '#64748b' }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px', fontSize: '12px' }}
-                  itemStyle={{ color: '#e2e8f0' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', fontSize: '12px' }}
+                  itemStyle={{ color: '#1e293b' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
                 <Bar dataKey="Stock" fill="#6366f1" radius={[4, 4, 0, 0]} />
@@ -152,8 +152,8 @@ export function SupplyChainAnalytics({ products = [], batches = [], salesLogs = 
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px', fontSize: '12px', color: '#fff' }}
-                  itemStyle={{ color: '#fff' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', fontSize: '12px', color: '#1e293b' }}
+                  itemStyle={{ color: '#1e293b' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '11px' }} />
               </PieChart>
@@ -170,12 +170,12 @@ export function SupplyChainAnalytics({ products = [], batches = [], salesLogs = 
           <div className="h-64 min-h-[16rem]">
             <ResponsiveContainer width="100%" height="100%" minWidth={1}>
               <LineChart data={turnoverData} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={10} tick={{ fill: '#64748b' }} angle={-45} textAnchor="end" />
                 <YAxis stroke="#64748b" fontSize={10} tick={{ fill: '#64748b' }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px', fontSize: '12px' }}
-                  itemStyle={{ color: '#e2e8f0' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', fontSize: '12px' }}
+                  itemStyle={{ color: '#1e293b' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
                 <Line type="monotone" dataKey="Turnover %" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2 }} />
@@ -185,15 +185,13 @@ export function SupplyChainAnalytics({ products = [], batches = [], salesLogs = 
         </div>
       </div>
 
-      {/* AI Supply Risk Assessment Panel */}
+      {/* Supply Risk Assessment Panel */}
       <div className="bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/50 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4 border-b border-slate-200/50 pb-4">
           <div className="flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-indigo-600" />
-            <h3 className="text-sm font-medium text-slate-800">AI Supply Risk Assessment</h3>
-            <span className="bg-indigo-500/10 text-indigo-600 border border-indigo-200 text-[9px] font-mono px-2 py-0.5 rounded-full uppercase tracking-wider font-medium ml-2">
-              Gemini Powered
-            </span>
+            <TrendingUp className="w-5 h-5 text-emerald-600" />
+            <h3 className="text-sm font-medium text-slate-800">Supply Risk Assessment</h3>
+            <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[9px] font-mono px-2 py-0.5 rounded-full uppercase tracking-wider font-medium ml-2">Algorithmic</span>
           </div>
         </div>
 
