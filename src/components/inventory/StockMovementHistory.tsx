@@ -6,7 +6,7 @@ export const StockMovementHistory: React.FC = () => {
   const { auditLogs, isLoading } = useInventory();
 
   return (
-    <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-4 h-full">
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 h-full">
       <div className="flex items-center space-x-2 border-b border-slate-200/30 pb-2">
         <RotateCcw className="w-4 h-4 text-emerald-600" />
         <h4 className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider">

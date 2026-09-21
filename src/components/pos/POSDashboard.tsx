@@ -215,7 +215,7 @@ export const POSDashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
           {/* Left Column: Product Search & Grid */}
           <div className="lg:col-span-8 flex flex-col space-y-6">
-            <div className="glass-card p-6 rounded-3xl border border-slate-200/30 flex-1 flex flex-col min-h-[500px]">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col min-h-[500px]">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Point of Sale</h3>
@@ -261,7 +261,7 @@ export const POSDashboard: React.FC = () => {
 
           {/* Right Column: Cart Panel */}
           <div className="lg:col-span-4 h-full">
-            <div className="glass-card p-6 rounded-3xl border border-slate-200/30 flex flex-col h-full relative overflow-hidden bg-white/50">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col h-full relative overflow-hidden bg-white/50">
               
               <div className="flex items-center justify-between border-b border-slate-200/50 pb-4 mb-4">
                 <div className="flex items-center space-x-2">
@@ -441,7 +441,7 @@ export const POSDashboard: React.FC = () => {
         </div>
       ) : (
         /* History Tab */
-        <div className="glass-card p-6 rounded-3xl border border-slate-200/30 flex-1 flex flex-col min-h-[600px]">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col min-h-[600px]">
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-6 border-b border-slate-200/50">
             <div>

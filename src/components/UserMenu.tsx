@@ -24,7 +24,9 @@ export const UserMenu: React.FC = () => {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-center w-8 h-8 bg-indigo-100 text-indigo-700 rounded-full hover:bg-indigo-200 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        aria-label="User account menu"
+        aria-expanded={isOpen}
+        className="flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         title={user.email}
       >
         <User className="w-4 h-4" />

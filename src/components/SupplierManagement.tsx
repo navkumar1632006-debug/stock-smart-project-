@@ -48,7 +48,7 @@ export const SupplierManagement = () => {
         </div>
         <button 
           onClick={() => setShowAdd(!showAdd)}
-          className="bg-indigo-600 hover:bg-indigo-500 text-slate-900 px-4 py-2 rounded-2xl text-xs font-medium transition flex items-center gap-2 shadow-lg shadow-indigo-500/20"
+          className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-2xl text-xs font-medium transition flex items-center gap-2 shadow-lg shadow-indigo-500/20"
         >
           <Plus className="w-4 h-4" />
           <span>Add Supplier</span>
@@ -94,7 +94,7 @@ export const SupplierManagement = () => {
             </div>
           </div>
           <div className="flex justify-end">
-            <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-slate-900 px-6 py-2 rounded-2xl text-xs font-medium transition">
+            <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-2xl text-xs font-medium transition">
               Save Supplier
             </button>
           </div>

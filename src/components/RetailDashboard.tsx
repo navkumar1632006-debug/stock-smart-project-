@@ -482,7 +482,7 @@ export const RetailDashboard: React.FC = () => {
                   alert("Synced offline transaction state buffers to active database collections successfully!");
                 }, 1200);
               }}
-              className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-slate-900 font-extrabold text-[9.5px] rounded-xl shadow-md hover:shadow-indigo-500/20 flex-shrink-0"
+              className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-sm flex-shrink-0 transition-colors"
             >
               Push Sync Queue
             </button>
@@ -738,27 +738,28 @@ export const RetailDashboard: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Form 1: Add Product */}
                       <ProductForm editProduct={editProductObj} onCancelEdit={() => setEditProductId(null)} userRole={currentRole} />
+
                       {/* Form 2: POS Cart */}
-                      <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-6 flex flex-col justify-between">
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 flex flex-col justify-between">
                         <div className="space-y-4">
-                          <div className="flex items-center space-x-2 border-b border-slate-200/30 pb-2">
+                          <div className="flex items-center space-x-2 border-b border-slate-100 pb-2">
                             <ShoppingBag className="w-4 h-4 text-emerald-600" />
-                            <h4 className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider">Point of Sale (POS)</h4>
+                            <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">Point of Sale (POS)</h4>
                           </div>
 
                           {currentRole === 'Staff' ? (
-                            <div className="bg-indigo-500/5 border border-indigo-200 rounded-2xl p-6 text-[10.5px] text-slate-500/90 font-mono text-center">
+                            <div className="bg-blue-50/50 border border-blue-200 rounded-2xl p-6 text-xs text-slate-600 font-mono text-center">
                               🔒 Access Locked: Role <b>{currentRole}</b> is blocked from logging POS cash register transactions. Use owner/manager identity to sell.
                             </div>
                           ) : (
                             <div className="space-y-3">
                               <div className="flex space-x-2">
                                 <div className="flex-1">
-                                  <label className="text-[9px] uppercase font-mono text-slate-500/90">Search/Scan Product</label>
+                                  <label className="text-xs font-medium text-slate-600 block mb-1">Search/Scan Product</label>
                                   <select
                                     value={saleProductId}
                                     onChange={(e) => setSaleProductId(e.target.value)}
-                                    className="w-full mt-1 px-2 py-2 bg-slate-50 border border-slate-200/30 rounded-2xl text-[10.5px] font-mono text-slate-800 focus:outline-none focus:border-indigo-500"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                                   >
                                     <option value="">-- Choose Product --</option>
                                     {products.map(p => (
@@ -768,21 +769,22 @@ export const RetailDashboard: React.FC = () => {
                                     ))}
                                   </select>
                                 </div>
-                                <div className="w-16">
-                                  <label className="text-[9px] uppercase font-mono text-slate-500/90">Qty</label>
+                                <div className="w-20">
+                                  <label className="text-xs font-medium text-slate-600 block mb-1">Qty</label>
                                   <input
                                     type="number"
                                     min="1"
                                     value={saleQty}
                                     onChange={(e) => setSaleQty(e.target.value)}
-                                    className="w-full mt-1 px-2 py-1.5 bg-slate-50 border border-slate-200/30 rounded-2xl text-[10.5px] font-mono text-slate-800 focus:outline-none"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                                   />
                                 </div>
                                 <div className="flex items-end">
                                   <button 
                                     onClick={addToCart}
                                     disabled={!saleProductId}
-                                    className="mb-0.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-white rounded-xl text-[10px] font-semibold transition"
+                                    aria-label="Add product to cart"
+                                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-white rounded-xl text-xs font-semibold transition-colors"
                                   >
                                     Add
                                   </button>
@@ -790,32 +792,38 @@ export const RetailDashboard: React.FC = () => {
                               </div>
 
                               {/* Cart Items */}
-                              <div className="border border-slate-200/50 rounded-2xl overflow-hidden mt-3">
-                                <div className="bg-slate-50/50 px-3 py-2 border-b border-slate-200/50 text-[9px] font-mono uppercase text-slate-500 flex justify-between">
+                              <div className="border border-slate-200 rounded-xl overflow-hidden mt-3">
+                                <div className="bg-slate-50 px-3 py-2 border-b border-slate-200 text-xs font-mono uppercase text-slate-500 flex justify-between">
                                   <span>Item</span>
                                   <span>Subtotal</span>
                                 </div>
                                 <div className="max-h-32 overflow-y-auto p-1 divide-y divide-slate-100">
                                   {cartItems.length === 0 ? (
-                                    <div className="p-4 text-center text-[10px] text-slate-400 font-mono">Cart is empty</div>
+                                    <div className="p-4 text-center text-xs text-slate-400 font-mono">Cart is empty</div>
                                   ) : cartItems.map(item => (
-                                    <div key={item.product.id} className="p-2 flex justify-between items-center text-[10px]">
+                                    <div key={item.product.id} className="p-2 flex justify-between items-center text-xs">
                                       <div>
                                         <div className="font-semibold text-slate-800">{item.product.name}</div>
-                                        <div className="text-[9px] text-slate-500">{item.quantity} x ₹{item.product.price} (GST {(getGstRate(item.product.category) * 100)}%)</div>
+                                        <div className="text-[11px] text-slate-500">{item.quantity} x ₹{item.product.price} (GST {(getGstRate(item.product.category) * 100)}%)</div>
                                       </div>
                                       <div className="flex items-center space-x-2">
-                                        <span className="font-mono text-slate-800">₹{(item.quantity * item.product.price).toFixed(2)}</span>
-                                        <button onClick={() => removeFromCart(item.product.id)} className="text-rose-400 hover:text-rose-600">×</button>
+                                        <span className="font-mono text-slate-800 font-medium">₹{(item.quantity * item.product.price).toFixed(2)}</span>
+                                        <button 
+                                          onClick={() => removeFromCart(item.product.id)} 
+                                          aria-label={`Remove ${item.product.name} from cart`}
+                                          className="p-1 text-rose-400 hover:text-rose-600 rounded"
+                                        >
+                                          ×
+                                        </button>
                                       </div>
                                     </div>
                                   ))}
                                 </div>
                                 {cartItems.length > 0 && (
-                                  <div className="bg-slate-50 p-3 border-t border-slate-200/50 text-[10px] font-mono space-y-1">
+                                  <div className="bg-slate-50 p-3 border-t border-slate-200 text-xs font-mono space-y-1">
                                     <div className="flex justify-between text-slate-500"><span>Subtotal:</span> <span>₹{cartSubtotal.toFixed(2)}</span></div>
                                     <div className="flex justify-between text-slate-500"><span>GST:</span> <span>₹{cartGst.toFixed(2)}</span></div>
-                                    <div className="flex justify-between text-slate-800 font-bold text-[12px] pt-1 border-t border-slate-200/50 mt-1">
+                                    <div className="flex justify-between text-slate-900 font-bold text-sm pt-1 border-t border-slate-200 mt-1">
                                       <span>Total:</span> <span>₹{cartTotal.toFixed(2)}</span>
                                     </div>
                                   </div>
@@ -825,16 +833,16 @@ export const RetailDashboard: React.FC = () => {
                               <button
                                 onClick={handleCheckout}
                                 disabled={cartItems.length === 0}
-                                className="w-full mt-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-slate-900 rounded-2xl text-[11px] font-semibold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition"
+                                className="w-full mt-3 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-colors shadow-sm"
                               >
                                 {saleSuccess ? (
                                   <>
-                                    <CheckCircle2 className="w-4 h-4 text-slate-900" />
+                                    <CheckCircle2 className="w-4 h-4 text-white" />
                                     <span>Sale Processed!</span>
                                   </>
                                 ) : (
                                   <>
-                                    <ShoppingBag className="w-4 h-4 text-slate-900" />
+                                    <ShoppingBag className="w-4 h-4 text-white" />
                                     <span>Confirm Sale (₹{cartTotal.toFixed(2)})</span>
                                   </>
                                 )}
@@ -844,7 +852,7 @@ export const RetailDashboard: React.FC = () => {
                         </div>
 
                         {/* Operational Tip */}
-                        <div className="bg-emerald-500/5 border border-emerald-200 rounded-2xl p-3.5 text-[10px] text-slate-600 font-sans leading-relaxed mt-2">
+                        <div className="bg-emerald-500/5 border border-emerald-200 rounded-2xl p-3.5 text-xs text-slate-600 font-sans leading-relaxed mt-2">
                           <span className="font-medium text-emerald-700 uppercase tracking-widest block mb-0.5">Atomic FEFO Tx:</span>
                           Transactions process atomically via Supabase RPC, ensuring inventory bounds and FEFO batch deductions succeed together.
                         </div>
@@ -864,7 +872,7 @@ export const RetailDashboard: React.FC = () => {
                     </React.Suspense>
 
                     {/* Expiry Tracking & Dynamic Pricing Panel */}
-                    <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-4">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
                       <div className="flex justify-between items-center border-b border-slate-200/30 pb-2">
                         <div className="flex items-center space-x-2">
                           <AlertTriangle className="w-4 h-4 text-amber-600 animate-bounce" />
@@ -897,7 +905,7 @@ export const RetailDashboard: React.FC = () => {
                               else if (daysLeft <= 4) expLabelColor = "text-amber-600 bg-amber-50 border-amber-200 font-medium";
 
                               return (
-                                <div key={b.id} className="p-3 bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 hover:border-slate-200/50 rounded-2xl flex items-center justify-between transition">
+                                <div key={b.id} className="p-3 bg-white border border-slate-200 rounded-xl hover:border-slate-300 flex items-center justify-between transition">
                                   <div className="space-y-1">
                                     <h5 className="text-[11.5px] font-sans font-semibold text-slate-900">{b.productName}</h5>
                                     <div className="flex items-center space-x-1.5 font-mono text-[9px] text-slate-500/90">
@@ -936,7 +944,7 @@ export const RetailDashboard: React.FC = () => {
                     </div>
 
                     {/* Demand Forecasting & Restock Suggestions Panel */}
-                    <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-4">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
                       <div className="flex justify-between items-center border-b border-slate-200/30 pb-2">
                         <div className="flex items-center space-x-2">
                           <Activity className="w-4 h-4 text-emerald-600 animate-pulse" />
@@ -956,7 +964,7 @@ export const RetailDashboard: React.FC = () => {
                           else if (f.reorderUrgency === 'Optimized') urgencyBadge = "bg-emerald-500/10 text-emerald-600 border border-emerald-200";
 
                           return (
-                            <div key={f.productId} className="p-3 bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 rounded-2xl flex items-start justify-between">
+                            <div key={f.productId} className="p-3 bg-white border border-slate-200 rounded-xl flex items-start justify-between">
                               <div className="space-y-1 flex-1">
                                 <div className="flex items-center justify-between">
                                   <h5 className="text-[11px] font-medium text-slate-800">{f.productName}</h5>
@@ -1002,7 +1010,7 @@ export const RetailDashboard: React.FC = () => {
 
             {/* Sub-tab 4: Business Reports & Tax Ledger */}
             {dashboardSection === 'reports' && (
-              <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-6 animate-fade-in bg-white shadow-sm border border-slate-200 rounded-2xl">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 animate-fade-in">
                 <div className="flex items-center justify-between border-b border-slate-200/30 pb-3">
                   <div>
                     <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">
@@ -1078,7 +1086,7 @@ export const RetailDashboard: React.FC = () => {
 
             {/* Sub-tab 5: Store Settings & Admin Console */}
             {dashboardSection === 'settings' && (
-              <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-6 animate-fade-in bg-white shadow-sm border border-slate-200 rounded-2xl">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 animate-fade-in">
                 <div className="flex items-center justify-between border-b border-slate-200/30 pb-3">
                   <div>
                     <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">
@@ -1129,7 +1137,7 @@ export const RetailDashboard: React.FC = () => {
                       <div className="pt-2">
                         <button
                           onClick={() => alert("Settings saved locally!")}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-[10px] font-semibold uppercase text-slate-900 tracking-wider transition"
+                          className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-semibold uppercase text-white tracking-wider transition-colors shadow-sm"
                         >
                           {t("Save Store Configuration", "सेटिंग्स सुरक्षित करें")}
                         </button>
@@ -1180,7 +1188,7 @@ export const RetailDashboard: React.FC = () => {
 
             {/* Sub-tab 6: Audit Ledger */}
             {dashboardSection === 'audit' && (
-              <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-6 animate-fade-in bg-white shadow-sm border border-slate-200 rounded-2xl">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 animate-fade-in">
                 <div className="flex items-center space-x-2">
                   <History className="w-5 h-5 text-indigo-600" />
                   <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">Immutable Inventory Ledger</h3>

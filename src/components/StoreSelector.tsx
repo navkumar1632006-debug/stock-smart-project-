@@ -63,13 +63,15 @@ export const StoreSelector: React.FC = () => {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-colors focus:outline-none"
+        aria-label="Select store"
+        aria-expanded={isOpen}
+        className="flex items-center space-x-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20"
       >
-        <StoreIcon className="w-4 h-4 text-indigo-600" />
-        <span className="text-xs font-bold text-indigo-900 tracking-tight">
+        <StoreIcon className="w-4 h-4 text-blue-600" />
+        <span className="text-xs font-bold text-blue-900 tracking-tight">
           {activeStore?.name || 'Select Store'}
         </span>
-        <ChevronDown className={`w-3 h-3 text-indigo-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 text-blue-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (

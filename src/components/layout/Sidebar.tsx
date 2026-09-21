@@ -10,7 +10,8 @@ import {
   ScrollText, 
   BarChart3, 
   Settings, 
-  Truck
+  Truck,
+  X
 } from 'lucide-react';
 
 export type ActiveTab = 'dashboard' | 'marketplace' | 'assistant';
@@ -96,13 +97,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className
         )}
       >
-        <div className="flex items-center h-16 px-6 border-b border-slate-200">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200">
           <div className="flex items-center space-x-2.5">
             <div className="p-1.5 bg-blue-50 rounded-lg">
               <Package className="w-5 h-5 text-blue-600" />
             </div>
             <span className="text-lg font-bold text-slate-900 tracking-tight">StockSmart</span>
           </div>
+          <button
+            onClick={() => setIsOpen(false)}
+            aria-label="Close navigation menu"
+            className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 px-3">

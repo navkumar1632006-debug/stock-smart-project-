@@ -114,7 +114,7 @@ export const HyperlocalMarketplace: React.FC<HyperlocalMarketplaceProps> = ({
   };
 
   return (
-    <div className="glass-card p-6 rounded-3xl border border-slate-200/30 flex flex-col space-y-6">
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-slate-200/30 pb-4">
         <div className="flex items-center space-x-3">
@@ -184,8 +184,8 @@ export const HyperlocalMarketplace: React.FC<HyperlocalMarketplaceProps> = ({
               onClick={() => setSelectedCategory(cat)}
               className={`px-3 py-2 rounded-2xl text-[10px] font-medium whitespace-nowrap transition-all ${
                 selectedCategory === cat
-                  ? 'bg-indigo-600 text-slate-900'
-                  : 'bg-slate-50 text-slate-500/90 border border-slate-200/30 hover:text-slate-900'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-slate-50 text-slate-600 border border-slate-200 hover:text-slate-900'
               }`}
             >
               {cat === 'ALL' ? 'All' : cat}
@@ -275,18 +275,18 @@ export const HyperlocalMarketplace: React.FC<HyperlocalMarketplaceProps> = ({
                     disabled={item.stockAvailable <= 0 || isSelected}
                     className={`px-3 py-1.5 rounded-2xl text-[10px] font-semibold transition-all flex items-center space-x-1 ${
                       isSelected
-                        ? 'bg-emerald-600 text-slate-900'
-                        : 'bg-rose-600 hover:bg-rose-500 text-slate-900'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-rose-600 hover:bg-rose-500 text-white'
                     }`}
                   >
                     {isSelected ? (
                       <>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-900" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                         <span>Checkout Complete!</span>
                       </>
                     ) : (
                       <>
-                        <ShoppingCart className="w-3.5 h-3.5 text-slate-900" />
+                        <ShoppingCart className="w-3.5 h-3.5 text-white" />
                         <span>Buy Discounted</span>
                       </>
                     )}

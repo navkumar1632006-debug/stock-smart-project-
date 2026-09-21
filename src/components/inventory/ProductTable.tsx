@@ -177,15 +177,15 @@ export const ProductTable: React.FC<ProductTableProps> = ({ onEditClick, userRol
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center justify-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button onClick={() => setSelectedProduct(p)} variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-slate-900" title="View Details">
+                              <Button onClick={() => setSelectedProduct(p)} variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-slate-900" aria-label="View Details" title="View Details">
                                 <Eye className="w-4 h-4" />
                               </Button>
                               {(userRole === 'Owner' || userRole === 'Manager') && (
                                 <>
-                                  <Button onClick={() => onEditClick(p)} variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-900" title="Edit Product">
+                                  <Button onClick={() => onEditClick(p)} variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-900" aria-label="Edit Product" title="Edit Product">
                                     <FontIcon className="w-4 h-4" />
                                   </Button>
-                                  <Button onClick={() => deleteProduct(p.id, p.name)} variant="ghost" size="icon" className="h-8 w-8 text-rose-600 hover:text-rose-900" title="Delete Product">
+                                  <Button onClick={() => deleteProduct(p.id, p.name)} variant="ghost" size="icon" className="h-8 w-8 text-rose-600 hover:text-rose-900" aria-label="Delete Product" title="Delete Product">
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
                                 </>

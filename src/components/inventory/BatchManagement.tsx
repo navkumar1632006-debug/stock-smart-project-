@@ -14,7 +14,7 @@ export const BatchManagement: React.FC = () => {
     : batches;
 
   return (
-    <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-4 h-full flex flex-col">
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 h-full flex flex-col">
       <div className="flex items-center justify-between border-b border-slate-200/30 pb-2">
         <div className="flex items-center space-x-2">
           <Clock className="w-4 h-4 text-amber-500" />

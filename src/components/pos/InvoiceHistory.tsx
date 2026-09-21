@@ -47,7 +47,7 @@ export const InvoiceHistory: React.FC = () => {
   );
 
   return (
-    <div className="glass-card p-6 rounded-3xl border border-slate-200/30 min-h-[500px] flex flex-col">
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 min-h-[500px] flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-xl font-black text-slate-900 flex items-center space-x-2">

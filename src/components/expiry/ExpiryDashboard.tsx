@@ -105,7 +105,7 @@ export const ExpiryDashboard: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div 
           onClick={() => setFilterStatus('All')}
-          className={`glass-card p-4 rounded-3xl border cursor-pointer transition ${filterStatus === 'All' ? 'ring-2 ring-slate-500 border-slate-300 bg-white shadow-md' : 'border-slate-200/50 hover:border-slate-300'}`}
+          className={`bg-white p-4 rounded-xl shadow-sm border cursor-pointer transition ${filterStatus === 'All' ? 'ring-2 ring-slate-500 border-slate-300 bg-white shadow-md' : 'border-slate-200/50 hover:border-slate-300'}`}
         >
           <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Total Batches</div>
           <div className="text-2xl font-black text-slate-800">{stats.total}</div>
@@ -113,7 +113,7 @@ export const ExpiryDashboard: React.FC = () => {
         
         <div 
           onClick={() => setFilterStatus('Expired')}
-          className={`glass-card p-4 rounded-3xl border cursor-pointer transition ${filterStatus === 'Expired' ? 'ring-2 ring-rose-500 border-rose-200 bg-rose-50 shadow-md shadow-rose-500/10' : 'border-slate-200/50 hover:border-rose-300'}`}
+          className={`bg-white p-4 rounded-xl shadow-sm border cursor-pointer transition ${filterStatus === 'Expired' ? 'ring-2 ring-rose-500 border-rose-200 bg-rose-50 shadow-md shadow-rose-500/10' : 'border-slate-200/50 hover:border-rose-300'}`}
         >
           <div className="flex items-center gap-1.5 text-rose-600 mb-2">
             <AlertOctagon className="w-3.5 h-3.5" />
@@ -124,7 +124,7 @@ export const ExpiryDashboard: React.FC = () => {
         
         <div 
           onClick={() => setFilterStatus('Critical')}
-          className={`glass-card p-4 rounded-3xl border cursor-pointer transition ${filterStatus === 'Critical' ? 'ring-2 ring-amber-500 border-amber-200 bg-amber-50 shadow-md shadow-amber-500/10' : 'border-slate-200/50 hover:border-amber-300'}`}
+          className={`bg-white p-4 rounded-xl shadow-sm border cursor-pointer transition ${filterStatus === 'Critical' ? 'ring-2 ring-amber-500 border-amber-200 bg-amber-50 shadow-md shadow-amber-500/10' : 'border-slate-200/50 hover:border-amber-300'}`}
         >
           <div className="flex items-center gap-1.5 text-amber-600 mb-2">
             <ShieldAlert className="w-3.5 h-3.5" />
@@ -135,7 +135,7 @@ export const ExpiryDashboard: React.FC = () => {
 
         <div 
           onClick={() => setFilterStatus('Urgent')}
-          className={`glass-card p-4 rounded-3xl border cursor-pointer transition ${filterStatus === 'Urgent' ? 'ring-2 ring-orange-500 border-orange-200 bg-orange-50 shadow-md shadow-orange-500/10' : 'border-slate-200/50 hover:border-orange-300'}`}
+          className={`bg-white p-4 rounded-xl shadow-sm border cursor-pointer transition ${filterStatus === 'Urgent' ? 'ring-2 ring-orange-500 border-orange-200 bg-orange-50 shadow-md shadow-orange-500/10' : 'border-slate-200/50 hover:border-orange-300'}`}
         >
           <div className="flex items-center gap-1.5 text-orange-600 mb-2">
             <TrendingDown className="w-3.5 h-3.5" />
@@ -146,7 +146,7 @@ export const ExpiryDashboard: React.FC = () => {
 
         <div 
           onClick={() => setFilterStatus('Warning')}
-          className={`glass-card p-4 rounded-3xl border cursor-pointer transition ${filterStatus === 'Warning' ? 'ring-2 ring-blue-500 border-blue-200 bg-blue-50 shadow-md shadow-blue-500/10' : 'border-slate-200/50 hover:border-blue-300'}`}
+          className={`bg-white p-4 rounded-xl shadow-sm border cursor-pointer transition ${filterStatus === 'Warning' ? 'ring-2 ring-blue-500 border-blue-200 bg-blue-50 shadow-md shadow-blue-500/10' : 'border-slate-200/50 hover:border-blue-300'}`}
         >
           <div className="flex items-center gap-1.5 text-blue-600 mb-2">
             <Clock className="w-3.5 h-3.5" />
@@ -156,7 +156,7 @@ export const ExpiryDashboard: React.FC = () => {
         </div>
 
         <div 
-          className="glass-card p-4 rounded-3xl border border-indigo-200 bg-indigo-50/50"
+          className="bg-white p-4 rounded-xl shadow-sm border border-indigo-200 bg-indigo-50/50"
         >
           <div className="flex items-center gap-1.5 text-indigo-700 mb-2">
             <Tag className="w-3.5 h-3.5" />
@@ -167,7 +167,7 @@ export const ExpiryDashboard: React.FC = () => {
       </div>
 
       {/* Main List */}
-      <div className="glass-card rounded-3xl border border-slate-200/50 overflow-hidden bg-white shadow-sm">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200/50 overflow-hidden bg-white shadow-sm">
         
         {/* Toolbar */}
         <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-slate-50/50">

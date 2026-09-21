@@ -198,7 +198,7 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
         <button
           onClick={() => setActiveSim('shelf')}
           className={`flex-1 pb-2 text-[10.5px] font-semibold uppercase tracking-wide transition-all ${
-            activeSim === 'shelf' ? 'border-b-2 border-indigo-500 text-slate-900' : 'text-slate-400 hover:text-slate-700'
+            activeSim === 'shelf' ? 'border-b-2 border-indigo-500 text-indigo-700' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           📷 Shelf Scanner
@@ -206,7 +206,7 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
         <button
           onClick={() => setActiveSim('receipt')}
           className={`flex-1 pb-2 text-[10.5px] font-semibold uppercase tracking-wide transition-all ${
-            activeSim === 'receipt' ? 'border-b-2 border-indigo-500 text-slate-900' : 'text-slate-400 hover:text-slate-700'
+            activeSim === 'receipt' ? 'border-b-2 border-indigo-500 text-indigo-700' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           🧾 Invoice OCR
@@ -214,7 +214,7 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
         <button
           onClick={() => setActiveSim('voice')}
           className={`flex-1 pb-2 text-[10.5px] font-semibold uppercase tracking-wide transition-all ${
-            activeSim === 'voice' ? 'border-b-2 border-indigo-500 text-slate-900' : 'text-slate-400 hover:text-slate-700'
+            activeSim === 'voice' ? 'border-b-2 border-indigo-500 text-indigo-700' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           🎙️ Voice Assistant
@@ -253,7 +253,7 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
           <button
             onClick={handleScanShelf}
             disabled={isScanningShelf}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-slate-900 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider transition"
+            className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider transition"
           >
             {isScanningShelf ? 'Scanning Store Shelf...' : 'Trigger Shelf Vision Scanner'}
           </button>
@@ -337,7 +337,7 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
               className={`p-2.5 rounded-2xl border transition ${
                 isListening 
                   ? 'bg-rose-600/20 border-rose-200 text-rose-600 animate-pulse'
-                  : 'bg-indigo-600 border-indigo-500 hover:bg-indigo-500 text-slate-900 shadow-md'
+                  : 'bg-indigo-600 border-indigo-500 hover:bg-indigo-500 text-white shadow-md'
               }`}
             >
               <Mic className="w-4 h-4" />

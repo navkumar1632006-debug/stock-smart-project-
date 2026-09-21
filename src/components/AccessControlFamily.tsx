@@ -101,7 +101,7 @@ export const AccessControlFamily: React.FC<AccessControlFamilyProps> = ({ curren
                 onClick={() => onRoleChange(role)}
                 className={`w-full p-2.5 rounded-2xl border text-xs font-semibold uppercase tracking-wider flex items-center justify-between transition-all ${
                   currentRole === role
-                    ? 'bg-indigo-600 text-slate-900 border-indigo-500 shadow-lg'
+                    ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg'
                     : 'bg-white shadow-sm border border-slate-200 rounded-2xl border-slate-200/30 text-slate-500/90 hover:border-slate-200/50 hover:text-slate-900'
                 }`}
               >
@@ -169,7 +169,7 @@ export const AccessControlFamily: React.FC<AccessControlFamilyProps> = ({ curren
               </select>
               <button
                 type="submit"
-                className="bg-indigo-600 hover:bg-indigo-500 text-slate-900 font-medium px-3 py-1 rounded-xl text-xs uppercase transition"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1 rounded-xl text-xs uppercase transition"
               >
                 Enroll
               </button>

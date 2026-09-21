@@ -60,7 +60,7 @@ export const RBACDashboard: React.FC = () => {
   };
 
   return (
-    <div className="glass-card p-6 rounded-3xl border border-slate-200/30 space-y-6">
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
       <div className="flex items-center space-x-3 mb-6">
         <div className="p-3 bg-indigo-100 rounded-2xl">
           <Shield className="w-6 h-6 text-indigo-600" />
