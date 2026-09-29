@@ -3,6 +3,13 @@ import { inventoryIntelligenceService } from './inventoryIntelligenceService';
 import { calculateDynamicEnsembleForecast } from '../forecaster';
 
 export const aiAssistantService = {
+  // Configuration for future LLM integration
+  config: {
+    provider: (import.meta as any).env?.VITE_AI_PROVIDER || 'StockSmart Deterministic Engine',
+    model: (import.meta as any).env?.VITE_AI_MODEL || 'Local Analysis',
+    isExternalLLM: false
+  },
+
   generateResponse(
     query: string,
     products: Product[],
@@ -34,7 +41,7 @@ export const aiAssistantService = {
       return response;
     }
 
-    if (lowerQuery.includes('reorder') || lowerQuery.includes('recommendation')) {
+    if (lowerQuery.includes('reorder') || lowerQuery.includes('recommendation') || lowerQuery.includes('restock')) {
       const forecasts = products.map(p => calculateDynamicEnsembleForecast(p, salesLogs, batches, products));
       const critical = forecasts.filter(f => f.reorderUrgency === 'Critical' && f.reorderQuantity > 0);
       
@@ -47,7 +54,7 @@ export const aiAssistantService = {
       return response;
     }
 
-    if (lowerQuery.includes('fast') || lowerQuery.includes('top') || lowerQuery.includes('best')) {
+    if (lowerQuery.includes('fast') || lowerQuery.includes('top') || lowerQuery.includes('best') || lowerQuery.includes('most')) {
       const productSales = products.map(p => {
         const sales = salesLogs.filter(s => s.productId === p.id);
         const volume = sales.reduce((sum, s) => sum + s.quantity, 0);
@@ -56,9 +63,9 @@ export const aiAssistantService = {
 
       const topSellers = productSales.filter(p => p.volume > 0).slice(0, 5);
       
-      if (topSellers.length === 0) return "📊 Not enough sales data to determine your fastest moving products yet.";
+      if (topSellers.length === 0) return "📈 Not enough sales data to determine your fastest moving products yet.";
 
-      let response = `🚀 Your **Fastest Moving Products** by unit volume are:\n\n`;
+      let response = `🔥 Your **Fastest Moving Products** by unit volume are:\n\n`;
       topSellers.forEach((p, i) => {
         response += `${i + 1}. **${p.name}**: ${p.volume} units sold\n`;
       });
@@ -77,9 +84,9 @@ export const aiAssistantService = {
         .sort((a, b) => a.volume - b.volume)
         .slice(0, 5);
 
-      if (slowMovers.length === 0 || slowMovers[0].volume > 10) return "📊 Your active inventory seems to be moving at a healthy pace!";
+      if (slowMovers.length === 0 || slowMovers[0].volume > 10) return "📈 Your active inventory seems to be moving at a healthy pace!";
 
-      let response = `🐢 Your **Slowest Moving Active Inventory** includes:\n\n`;
+      let response = `📉 Your **Slowest Moving Active Inventory** includes:\n\n`;
       slowMovers.forEach(p => {
         response += `- **${p.name}**: Only ${p.volume} units sold (Current Stock: ${p.stockLevel})\n`;
       });
@@ -102,7 +109,7 @@ export const aiAssistantService = {
 
       let response = '';
       if (expired.length > 0) {
-        response += `❌ **URGENT**: You have **${expired.length} batches** that are already EXPIRED on the shelf. Please remove them immediately.\n\n`;
+        response += `🚨 **URGENT**: You have **${expired.length} batches** that are already EXPIRED on the shelf. Please remove them immediately.\n\n`;
       }
 
       if (nearExpiry.length > 0) {
@@ -121,22 +128,31 @@ export const aiAssistantService = {
       return response;
     }
 
-    if (lowerQuery.includes('sales') && lowerQuery.includes('week')) {
+    if (lowerQuery.includes('sales')) {
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
       
+      const todayString = new Date().toDateString();
+      const todaySales = salesLogs.filter(s => new Date(s.saleDate).toDateString() === todayString);
+      const todayRevenue = todaySales.reduce((sum, s) => sum + s.totalPrice, 0);
+      const todayUnits = todaySales.reduce((sum, s) => sum + s.quantity, 0);
+
       const recentSales = salesLogs.filter(s => new Date(s.saleDate) >= oneWeekAgo);
       const revenue = recentSales.reduce((sum, s) => sum + s.totalPrice, 0);
       const units = recentSales.reduce((sum, s) => sum + s.quantity, 0);
 
-      return `📈 **This Week's Sales Summary:**\n\n- **Total Revenue**: ₹${revenue.toLocaleString()}\n- **Units Sold**: ${units}\n- **Transactions**: ${recentSales.length}\n\nKeep up the great work!`;
+      if (lowerQuery.includes('today')) {
+        return `📊 **Today's Sales Summary:**\n\n- **Total Revenue**: ₹${todayRevenue.toLocaleString()}\n- **Units Sold**: ${todayUnits}\n- **Transactions**: ${todaySales.length}\n\nKeep up the great work!`;
+      }
+
+      return `📊 **This Week's Sales Summary:**\n\n- **Total Revenue**: ₹${revenue.toLocaleString()}\n- **Units Sold**: ${units}\n- **Transactions**: ${recentSales.length}\n\nKeep up the great work!`;
     }
 
-    if (lowerQuery.includes('risk')) {
+    if (lowerQuery.includes('health') || lowerQuery.includes('summary') || lowerQuery.includes('risk')) {
       const forecasts = products.map(p => calculateDynamicEnsembleForecast(p, salesLogs, batches, products));
       const critical = forecasts.filter(f => f.reorderUrgency === 'Critical');
       
-      let response = `🔍 **Inventory Risk Profile:**\n\n`;
+      let response = `🏥 **Store Health Summary:**\n\n`;
       response += `- **Stock-Out Risks**: ${critical.length} critical items.\n`;
       
       const today = new Date().getTime();
@@ -148,6 +164,6 @@ export const aiAssistantService = {
     }
 
     // Default fallback
-    return "I am your StockSmart AI Assistant. You can ask me questions like:\n\n- *Which products are low in stock?*\n- *What should I reorder?*\n- *Which products are selling fastest?*\n- *Which products are expiring?*\n- *What were my sales this week?*";
+    return "I am your StockSmart AI Assistant. You can ask me questions like:\n\n- *Which products are low in stock?*\n- *What should I restock?*\n- *Which products are selling fastest?*\n- *Which products are expiring?*\n- *Give me today's sales summary*";
   }
 };

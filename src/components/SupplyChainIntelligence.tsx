@@ -29,7 +29,7 @@ export function SupplyChainIntelligence() {
       </CardHeader>
       <CardContent className="p-6 bg-slate-50/30">
         <EmptyState
-          icon={AlertTriangle}
+          icon={<AlertTriangle className="w-16 h-16 text-slate-300" />}
           title="ML Pipeline Paused: Insufficient Historical Data"
           description="The forecasting model requires a significant volume of historical transactions (at least 10 days of continuous data per product) to generate statistically reliable demand predictions. The database currently lacks sufficient historical sales volume to train the model."
         />

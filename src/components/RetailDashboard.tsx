@@ -209,7 +209,8 @@ export const RetailDashboard: React.FC = () => {
       try {
         if ('Notification' in window && Notification.permission === 'granted') {
           const res = await fetch('/api/inventory/alerts');
-          if (res.ok) {
+          const contentType = res.headers.get("content-type");
+          if (res.ok && contentType && contentType.includes("application/json")) {
             const data = await res.json();
             if (data.alerts && data.alerts.length > 0) {
               data.alerts.forEach((alert: any) => {
@@ -218,6 +219,8 @@ export const RetailDashboard: React.FC = () => {
                 });
               });
             }
+          } else {
+            console.warn('Alerts API is not available (mock fallback)');
           }
         }
       } catch (err) {
@@ -315,7 +318,7 @@ export const RetailDashboard: React.FC = () => {
         if (!response.ok) throw new Error("Bulk import failed");
         
         
-        fetch('/api/inventory').then(res => res.json()).then(data => {
+        fetch('/api/inventory').then(res => (res.ok && res.headers.get("content-type")?.includes("application/json") ? res.json() : [])).then(data => {
           setProducts(data);
           setAllOriginalProducts(data);
         });
@@ -385,7 +388,7 @@ export const RetailDashboard: React.FC = () => {
 
   const addToCart = () => {
     if (!saleProductId || parseInt(saleQty) <= 0) return;
-    const prod = products.find(p => p.id === saleProductId);
+    const prod = products.find(p => p.id === saleProductId); 
     if (!prod) return;
     
     // Check if adding exceeds stock
@@ -662,7 +665,7 @@ export const RetailDashboard: React.FC = () => {
 
                         {activeActionCount === 0 ? (
                           <EmptyState
-                            icon={CheckCircle2}
+                            icon={<CheckCircle2 className="w-16 h-16 text-slate-300" />}
                             title="All clear!"
                             description="You have no urgent operational tasks. Inventory and batches are healthy."
                           />
@@ -701,6 +704,33 @@ export const RetailDashboard: React.FC = () => {
                       </>
                     );
                   })}
+                </div>
+                
+                {/* Sales Flow & Predictions Line Chart (Full Span) */}
+                <SalesForecastChart
+                  salesData={salesLogs}
+                  forecastData={forecasts}
+                  products={products}
+                />
+
+                {/* Supply Chain Analytics */}
+                <div className="mt-8">
+                  <h2 className="text-xl font-semibold tracking-tight text-slate-900 mb-6 flex items-center gap-2">
+                    <Box className="w-6 h-6 text-indigo-500" />
+                    Supply Chain Health
+                  </h2>
+                  <SupplyChainAnalytics
+                    products={products}
+                    batches={batches}
+                    salesLogs={salesLogs}
+                  />
+                </div>
+
+                {/* AI Supply Chain Intelligence */}
+                <div className="mt-8 animate-fade-in">
+                  <React.Suspense fallback={<LoadingSkeleton />}>
+                     <SupplyChainIntelligence />
+                  </React.Suspense>
                 </div>
 
               </div>
@@ -1248,32 +1278,6 @@ export const RetailDashboard: React.FC = () => {
               </div>
             )}
 
-            {/* Sales Flow & Predictions Line Chart (Full Span) */}
-            <SalesForecastChart
-              salesData={salesLogs}
-              forecastData={forecasts}
-              products={products}
-            />
-
-            {/* Supply Chain Analytics */}
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold tracking-tight text-slate-900 mb-6 flex items-center gap-2">
-                <Box className="w-6 h-6 text-indigo-500" />
-                Supply Chain Health
-              </h2>
-              <SupplyChainAnalytics
-                products={products}
-                batches={batches}
-                salesLogs={salesLogs}
-              />
-            </div>
-
-            {/* AI Supply Chain Intelligence */}
-            <div className="mt-8 animate-fade-in">
-              <React.Suspense fallback={<LoadingSkeleton />}>
-                 <SupplyChainIntelligence />
-              </React.Suspense>
-            </div>
           </div>
         )}
 

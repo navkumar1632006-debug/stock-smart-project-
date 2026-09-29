@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Play, Square, Volume2, Globe, TrendingUp, AlertTriangle, HelpCircle, AlertCircle } from 'lucide-react';
+import { useInventory } from '../context/InventoryContext';
 import { Card, CardHeader, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
@@ -15,17 +16,51 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
   const [selectedLang, setSelectedLang] = useState<string>('en-IN');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const { products, batches } = useInventory();
   const fetchBriefing = async () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const res = await fetch('/api/ai-briefing');
-      if (!res.ok) throw new Error("Could not construct daily operational briefing.");
-      const data = await res.json();
-      setBriefText(data.text || '');
+      let text = "### 1. Inventory & Restock Alerts\n";
+      
+      const lowStock = products.filter(p => p.stockLevel <= p.reorderPoint && p.stockLevel > 0);
+      const outOfStock = products.filter(p => p.stockLevel === 0);
+      
+      if (outOfStock.length > 0) {
+        text += `- **${outOfStock.length} items** are out of stock. Recommend immediate supplier contact for: ${outOfStock.slice(0,3).map(p=>p.name).join(', ')}.\n`;
+      }
+      if (lowStock.length > 0) {
+        text += `- **${lowStock.length} items** are running low. Preparing draft Purchase Orders.\n`;
+      }
+      if (outOfStock.length === 0 && lowStock.length === 0) {
+        text += `- Inventory is extremely healthy. No critical restock needed today.\n`;
+      }
+
+      text += "\n### 2. Spoilage & Expiry Prevention\n";
+      const today = new Date().getTime();
+      const nextWeek = today + 7 * 24 * 60 * 60 * 1000;
+      
+      const expiringSoon = batches.filter(b => {
+        const time = new Date(b.expiryDate).getTime();
+        return b.currentQuantity > 0 && time > today && time <= nextWeek;
+      });
+      
+      const expired = batches.filter(b => b.currentQuantity > 0 && new Date(b.expiryDate).getTime() <= today);
+
+      if (expired.length > 0) {
+        text += `- **${expired.length} batches** have expired. Please remove from shelves immediately to prevent accidental sale.\n`;
+      }
+      if (expiringSoon.length > 0) {
+        text += `- **${expiringSoon.length} batches** expiring within 7 days. Recommended action: Route to POS as 20% discount items.\n`;
+      }
+      if (expired.length === 0 && expiringSoon.length === 0) {
+        text += `- No imminent expiry risks detected. Freshness index is optimal.\n`;
+      }
+
+      setBriefText(text);
     } catch (e: any) {
       console.error(e);
-      setErrorMsg(e.message || "Briefing failed to build.");
+      setErrorMsg("Briefing failed to build.");
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +134,7 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
             <div className="flex items-center space-x-2">
               <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">AI Daily Morning Briefing</h3>
               <Badge variant="default" className="bg-indigo-500/20 border-indigo-200">
-                Copilot Mode
+                AI Mode
               </Badge>
             </div>
             <p className="text-xs text-slate-500/90 font-mono">Generative store operations intelligence and predictive actions</p>
@@ -226,3 +261,4 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
     </Card>
   );
 };
+

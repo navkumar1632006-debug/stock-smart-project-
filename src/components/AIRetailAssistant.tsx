@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Sparkles, User, Bot, AlertCircle, ShoppingBag, Store } from 'lucide-react';
+import { aiAssistantService } from '../lib/services/aiAssistantService';
 import { Card, CardHeader, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
@@ -21,7 +22,7 @@ export const AIRetailAssistant: React.FC<AIRetailAssistantProps> = ({ products, 
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Namaste! I am your **StockSmart AI Operations Copilot**. I can help you automate store restocking, audit near-expiry stock, calculate GST parameters, or generate local flash marketplace discounts. Ask me anything!"
+      content: "Namaste! I am your **StockSmart AI Assistant**. I can help you automate store restocking, audit near-expiry stock, calculate GST parameters, or generate local flash marketplace discounts. Ask me anything!"
     }
   ]);
   const [input, setInput] = useState('');
@@ -48,39 +49,25 @@ export const AIRetailAssistant: React.FC<AIRetailAssistantProps> = ({ products, 
     setMessages(prev => [...prev, userMsg]);
     setIsSending(true);
 
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: textToSend,
-          role: assistantRole,
-          history: messages.map(m => ({
-            role: m.role,
-            content: m.content
-          }))
-        })
-      });
-
-      if (!response.ok) throw new Error("Could not connect with AI intelligence.");
-      const data = await response.json();
+        try {
+      // Use real data deterministic service instead of frontend mock fetch
+      const generated = aiAssistantService.generateResponse(textToSend, products, batches, []);
       
       const replyMsg: Message = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',
-        content: data.text || "Sorry, I couldn't compute a reply."
+        content: generated
       };
-      setMessages(prev => [...prev, replyMsg]);
+      
+      setTimeout(() => {
+        setMessages(prev => [...prev, replyMsg]);
+        setIsSending(false);
+      }, 600); // Slight delay for realistic UX
     } catch (e: any) {
       setMessages(prev => [
         ...prev,
-        {
-          id: `msg-${Date.now() + 1}`,
-          role: 'assistant',
-          content: `❌ **Error:** ${e.message || "Failed to reach servers."}`
-        }
+        { id: `error-${Date.now()}`, role: 'assistant', content: 'dY" Error: Unable to compute response from data layer.' }
       ]);
-    } finally {
       setIsSending(false);
     }
   };
@@ -130,9 +117,12 @@ export const AIRetailAssistant: React.FC<AIRetailAssistantProps> = ({ products, 
   const getQuickPrompts = () => {
     if (assistantRole === 'vendor') {
       return [
-        "Audit expiring batches & suggest smart discounts",
-        "Which products are below critical reorder points?",
-        "Draft a GST invoice profile for Dairy items"
+        "Show low-stock products",
+        "What should I restock?",
+        "Give me today's sales summary",
+        "Show products near expiry",
+        "Which products sell the most?",
+        "Give me a store health summary"
       ];
     } else {
       return [
@@ -152,7 +142,7 @@ export const AIRetailAssistant: React.FC<AIRetailAssistantProps> = ({ products, 
             <Sparkles className="w-5 h-5 text-blue-600 animate-pulse" />
           </div>
           <div>
-            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">AI Retail Copilot</h3>
+            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">StockSmart AI Assistant</h3>
             <span className="text-[9px] font-mono text-slate-500/90">Operational Assistant</span>
           </div>
         </div>
@@ -290,3 +280,8 @@ export const AIRetailAssistant: React.FC<AIRetailAssistantProps> = ({ products, 
     </Card>
   );
 };
+
+
+
+
+

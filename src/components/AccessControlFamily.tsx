@@ -16,7 +16,7 @@ export const AccessControlFamily: React.FC<AccessControlFamilyProps> = ({ curren
   const fetchUsers = async () => {
     try {
       const res = await fetch('/api/family');
-      if (res.ok) {
+      const contentType = res.headers.get("content-type"); if (res.ok && contentType && contentType.includes("application/json")) {
         const data = await res.json();
         setUsers(data);
       }
@@ -40,7 +40,7 @@ export const AccessControlFamily: React.FC<AccessControlFamilyProps> = ({ curren
         body: JSON.stringify({ name: newUserName, phone: newUserPhone, role: newUserRole })
       });
 
-      if (res.ok) {
+      const contentType = res.headers.get("content-type"); if (res.ok && contentType && contentType.includes("application/json")) {
         setNewUserName('');
         setNewUserPhone('');
         fetchUsers();
