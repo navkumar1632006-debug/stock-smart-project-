@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, CheckCircle2, FileText, IndianRupee, Truck, ShieldAlert, Loader } from 'lucide-react';
-import { Product, SaleRecord } from '../types/retail';
+import { ShoppingCart, CheckCircle2, IndianRupee, Truck, Loader, PackagePlus } from 'lucide-react';
+import { Product, SaleRecord, Supplier, PurchaseOrder } from '../types/retail';
 import { inventoryIntelligenceService, ReorderPO } from '../lib/services/inventoryIntelligenceService';
-import { inventoryService } from '../lib/services/inventoryService';
+import { supplierService } from '../lib/services/supplierService';
+import { procurementService } from '../lib/services/procurementService';
 
 interface SmartReorderProps {
   products: Product[];
@@ -12,15 +13,23 @@ interface SmartReorderProps {
 
 export const SmartReorderPO: React.FC<SmartReorderProps> = ({ products, salesLogs, onReorderSuccess }) => {
   const [draft, setDraft] = useState<ReorderPO | null>(null);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [pendingPOs, setPendingPOs] = useState<PurchaseOrder[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isApproving, setIsApproving] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [receivingPO, setReceivingPO] = useState<string | null>(null);
 
-  const fetchDraft = () => {
+  const fetchData = async () => {
     setIsLoading(true);
     try {
-      const generatedDraft = inventoryIntelligenceService.generateReorderPO(products, salesLogs);
+      const sups = await supplierService.getSuppliers();
+      setSuppliers(sups);
+      const generatedDraft = inventoryIntelligenceService.generateReorderPO(products, salesLogs, sups);
       setDraft(generatedDraft);
+      
+      const pos = await procurementService.getPurchaseOrders();
+      setPendingPOs(pos.filter(p => ['draft', 'submitted', 'approved', 'partially_received'].includes(p.status)));
     } catch (e) {
       console.error(e);
     } finally {
@@ -29,47 +38,82 @@ export const SmartReorderPO: React.FC<SmartReorderProps> = ({ products, salesLog
   };
 
   useEffect(() => {
-    fetchDraft();
+    fetchData();
   }, [products, salesLogs]);
 
-  const handleApprovePO = async () => {
+  const handleCreatePOs = async () => {
     if (!draft || draft.items.length === 0) return;
-    setIsApproving(true);
+    setIsProcessing(true);
     setSuccessMsg(null);
 
     try {
-      // Simulate B2B payment & delivery queue seeding
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // Inject the reordered products back into active inventory using proper service methods
+      const itemsBySupplier = new Map<string, typeof draft.items>();
+      const unassigned = [];
+
       for (const item of draft.items) {
-        // Find existing product to get its price
-        const existingProduct = products.find(p => p.id === item.productId);
-        
-        await inventoryService.addBatch(
-          item.productId,
-          `AUTO-RE-${Date.now().toString().substring(8)}`,
-          item.reorderQuantity,
-          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 30d expiry
-        );
+        if (!item.supplierId) {
+          unassigned.push(item);
+        } else {
+          const list = itemsBySupplier.get(item.supplierId) || [];
+          list.push(item);
+          itemsBySupplier.set(item.supplierId, list);
+        }
       }
 
-      setSuccessMsg(`🚀 Purchase Order ${draft.poNumber} Approved! payment of ₹${Math.round(draft.totalPayable + draft.totalGst)} initiated. New batches dispatched and stock updated.`);
+      if (unassigned.length > 0) {
+        throw new Error('Some items need supplier assignment first. Add a supplier to your system.');
+      }
+
+      for (const [supplierId, items] of itemsBySupplier.entries()) {
+        const poItems = items.map(i => ({
+          productId: i.productId,
+          quantityOrdered: i.reorderQuantity,
+          unitCost: i.unitCost
+        }));
+        const poId = await procurementService.createPurchaseOrder(supplierId, 'Auto-generated PO', poItems);
+        await procurementService.updateOrderStatus(poId, 'submitted');
+      }
+
+      setSuccessMsg(`Purchase Orders Created successfully!`);
       
-      if (onReorderSuccess) {
-        onReorderSuccess();
-      }
+      if (onReorderSuccess) onReorderSuccess();
 
-      // Re-fetch draft (it should clear out as stock has been restocked)
       setTimeout(() => {
         setSuccessMsg(null);
-        fetchDraft();
-      }, 5000);
+        fetchData();
+      }, 3000);
 
     } catch (e: any) {
       alert("PO error: " + e.message);
     } finally {
-      setIsApproving(false);
+      setIsProcessing(false);
+    }
+  };
+
+  const handleReceiveStock = async (poId: string) => {
+    setReceivingPO(poId);
+    try {
+      const details = await procurementService.getPurchaseOrderDetails(poId);
+      
+      // Auto receive all pending
+      for (const item of details.items) {
+        const pending = item.quantityOrdered - item.quantityReceived;
+        if (pending > 0) {
+          await procurementService.receiveStock(poId, item.id, pending);
+        }
+      }
+
+      setSuccessMsg(`Stock Received successfully for PO!`);
+      if (onReorderSuccess) onReorderSuccess();
+      
+      setTimeout(() => {
+        setSuccessMsg(null);
+        fetchData();
+      }, 3000);
+    } catch (e: any) {
+      alert("Receive error: " + e.message);
+    } finally {
+      setReceivingPO(null);
     }
   };
 
@@ -81,13 +125,10 @@ export const SmartReorderPO: React.FC<SmartReorderProps> = ({ products, salesLog
             <ShoppingCart className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-xs font-semibold uppercase text-slate-900 tracking-wider">Automated Smart Reordering</h3>
-            <p className="text-[10px] text-slate-500/90 font-mono">B2B procurement & supplier integration</p>
+            <h3 className="text-xs font-semibold uppercase text-slate-900 tracking-wider">Automated Procurement</h3>
+            <p className="text-[10px] text-slate-500/90 font-mono">Real B2B Purchase Orders</p>
           </div>
         </div>
-        <span className="text-[9px] font-mono text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-medium">
-          Auto PO Draft
-        </span>
       </div>
 
       {successMsg && (
@@ -100,71 +141,96 @@ export const SmartReorderPO: React.FC<SmartReorderProps> = ({ products, salesLog
       {isLoading ? (
         <div className="py-8 text-center space-y-1.5">
           <Loader className="w-5 h-5 text-blue-600 animate-spin mx-auto" />
-          <p className="text-[10px] font-mono text-slate-400">Drafting Purchase Orders based on replenishment criteria...</p>
-        </div>
-      ) : draft && draft.items && draft.items.length > 0 ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between text-[10px] font-mono text-slate-500/90 bg-white shadow-sm border border-slate-200 rounded-2xl p-2.5 rounded-2xl border border-slate-200/30">
-            <span>PO Code: <strong className="text-slate-900">{draft.poNumber}</strong></span>
-            <span>Est. Lead Time: <strong className="text-slate-900">Same-day (4h)</strong></span>
-          </div>
-
-          <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
-            {draft.items.map((item: any, idx: number) => (
-              <div key={idx} className="bg-slate-50/30 border border-slate-200/30/50 p-2.5 rounded-2xl flex items-center justify-between text-xs">
-                <div>
-                  <h4 className="font-medium text-slate-700">{item.productName}</h4>
-                  <p className="text-[10px] text-slate-400 font-mono">Supplier: {item.supplier} • Qty: {item.reorderQuantity}</p>
-                </div>
-                <div className="text-right font-mono text-slate-700">
-                  <p className="font-medium">₹{item.totalCost}</p>
-                  <p className="text-[9px] text-slate-400">GST: {item.gstRate}%</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-t border-slate-200/30 pt-3.5 space-y-1.5 text-xs font-mono">
-            <div className="flex justify-between text-slate-500/90 text-[10px]">
-              <span>Subtotal Cost</span>
-              <span>₹{draft.totalPayable}</span>
-            </div>
-            <div className="flex justify-between text-slate-500/90 text-[10px]">
-              <span>Central & State GST</span>
-              <span>₹{Math.round(draft.totalGst)}</span>
-            </div>
-            <div className="flex justify-between text-slate-900 font-medium text-[11.5px] border-t border-dashed border-slate-200/50 pt-1.5">
-              <span>Total Draft PO Value</span>
-              <span className="text-blue-600 flex items-center">
-                <IndianRupee className="w-3 h-3 mr-0.5" />
-                {Math.round(draft.totalPayable + draft.totalGst)}
-              </span>
-            </div>
-          </div>
-
-          <button
-            onClick={handleApprovePO}
-            disabled={isApproving}
-            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800/40 text-slate-900 font-semibold text-xs uppercase tracking-wider py-2.5 rounded-2xl transition duration-200 flex items-center justify-center space-x-2"
-          >
-            {isApproving ? (
-              <>
-                <Loader className="w-4 h-4 animate-spin text-slate-900" />
-                <span>Authorizing Instant B2B Transfer...</span>
-              </>
-            ) : (
-              <>
-                <Truck className="w-4 h-4" />
-                <span>One-Tap Approve & Order PO</span>
-              </>
-            )}
-          </button>
+          <p className="text-[10px] font-mono text-slate-400">Loading procurement data...</p>
         </div>
       ) : (
-        <div className="p-6 text-center bg-slate-50/20 rounded-2xl border border-dashed border-slate-200/30 text-xs font-mono text-slate-400 space-y-1">
-          <CheckCircle2 className="w-5 h-5 text-emerald-500/80 mx-auto" />
-          <p className="text-slate-500/90 font-medium">Stock levels optimal!</p>
-          <p className="text-[10px]">No purchase order draft matches current reorder thresholds.</p>
+        <div className="space-y-6">
+          {/* Active POs */}
+          {pendingPOs.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Active Purchase Orders</h4>
+              <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                {pendingPOs.map((po) => (
+                  <div key={po.id} className="bg-slate-50/50 border border-slate-200/50 p-3 rounded-2xl flex items-center justify-between">
+                    <div>
+                      <h5 className="font-medium text-slate-800 text-xs">{po.poNumber}</h5>
+                      <p className="text-[10px] text-slate-500 font-mono">Supplier: {po.supplierName} • {po.status}</p>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="text-right font-mono text-slate-700">
+                        <p className="font-medium text-xs">₹{po.totalAmount}</p>
+                      </div>
+                      <button
+                        onClick={() => handleReceiveStock(po.id)}
+                        disabled={receivingPO === po.id}
+                        className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-50 px-3 py-1.5 rounded-xl text-[10px] font-medium transition-colors flex items-center space-x-1"
+                      >
+                        {receivingPO === po.id ? <Loader className="w-3 h-3 animate-spin" /> : <PackagePlus className="w-3 h-3" />}
+                        <span>Receive</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Draft PO */}
+          {draft && draft.items.length > 0 ? (
+            <div className="space-y-3 pt-3 border-t border-slate-200/50">
+              <h4 className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Reorder Suggestions</h4>
+              <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                {draft.items.map((item, idx) => (
+                  <div key={idx} className="bg-slate-50/30 border border-slate-200/30 p-2.5 rounded-2xl flex items-center justify-between text-xs">
+                    <div>
+                      <h4 className="font-medium text-slate-700">{item.productName}</h4>
+                      <p className="text-[10px] text-slate-400 font-mono">Supplier: {item.supplierName} • Qty: {item.reorderQuantity}</p>
+                    </div>
+                    <div className="text-right font-mono text-slate-700">
+                      <p className="font-medium">₹{item.totalCost}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-slate-200/30 pt-3.5 space-y-1.5 text-xs font-mono">
+                <div className="flex justify-between text-slate-900 font-medium text-[11.5px]">
+                  <span>Total Draft PO Value</span>
+                  <span className="text-blue-600 flex items-center">
+                    <IndianRupee className="w-3 h-3 mr-0.5" />
+                    {Math.round(draft.totalPayable + draft.totalGst)}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleCreatePOs}
+                disabled={isProcessing || draft.items.some(i => !i.supplierId)}
+                className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 disabled:text-slate-500 text-white font-semibold text-xs uppercase tracking-wider py-2.5 rounded-2xl transition duration-200 flex items-center justify-center space-x-2"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Truck className="w-4 h-4" />
+                    <span>Create Purchase Orders</span>
+                  </>
+                )}
+              </button>
+              {draft.items.some(i => !i.supplierId) && (
+                <p className="text-[10px] text-red-500 text-center mt-2">Cannot create POs: Missing supplier assignments. Add suppliers first.</p>
+              )}
+            </div>
+          ) : (
+            <div className="p-6 text-center bg-slate-50/20 rounded-2xl border border-dashed border-slate-200/30 text-xs font-mono text-slate-400 space-y-1">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500/80 mx-auto" />
+              <p className="text-slate-500/90 font-medium">Stock levels optimal!</p>
+              <p className="text-[10px]">No purchase order draft matches current reorder thresholds.</p>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-import { Product, InventoryBatch, SaleRecord } from '../../types/retail';
+import { Product, InventoryBatch, SaleRecord, Supplier } from '../../types/retail';
 
 export interface RiskAssessment {
   sku: string;
@@ -11,7 +11,8 @@ export interface ReorderItem {
   productId: string;
   productName: string;
   sku: string;
-  supplier: string;
+  supplierId: string | null;
+  supplierName: string;
   unitCost: number;
   reorderQuantity: number;
   totalCost: number;
@@ -19,17 +20,12 @@ export interface ReorderItem {
 }
 
 export interface ReorderPO {
-  poNumber: string;
   items: ReorderItem[];
   totalPayable: number;
   totalGst: number;
 }
 
 export const inventoryIntelligenceService = {
-  /**
-   * Calculates the average daily sales for a product based on historical logs.
-   * Uses a 30-day window fallback if sales range is small.
-   */
   calculateAvgDailySales(productId: string, salesLogs: SaleRecord[]): number {
     const productSales = salesLogs.filter((s) => s.productId === productId);
     if (productSales.length === 0) return 0;
@@ -39,22 +35,17 @@ export const inventoryIntelligenceService = {
       totalQty += s.quantity;
     });
 
-    // Determine days span, max 30 days
     const dates = productSales.map((s) => new Date(s.saleDate).getTime());
     const minDate = Math.min(...dates);
     const maxDate = Math.max(...dates);
     let diffDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24));
     
-    // If all sales were on the same day, assume 1 day. If less than 30, cap at 30 to avoid dividing by 1 for sparse data.
     diffDays = diffDays === 0 ? 1 : diffDays;
     const observationPeriod = Math.min(Math.max(diffDays, 7), 30); 
 
     return totalQty / observationPeriod;
   },
 
-  /**
-   * Generates deterministic risk assessments for stock-outs.
-   */
   getRiskAssessments(products: Product[], salesLogs: SaleRecord[], batches: InventoryBatch[]): RiskAssessment[] {
     const risks: RiskAssessment[] = [];
 
@@ -84,7 +75,6 @@ export const inventoryIntelligenceService = {
         recommendation = 'Monitor closely; no immediate action required.';
       }
 
-      // Check near expiry
       const productBatches = batches.filter((b) => b.productId === p.id && b.currentQuantity > 0);
       let expiringSoon = false;
       productBatches.forEach(b => {
@@ -93,7 +83,6 @@ export const inventoryIntelligenceService = {
       });
 
       if (expiringSoon) {
-        // If stock is healthy but expiring, it's a high risk of waste
         if (riskLevel === 'Low' || riskLevel === 'Medium') {
           riskLevel = 'High';
           analysis = `Substantial stock (${p.stockLevel}) is nearing expiry (<= 7 days).`;
@@ -101,7 +90,6 @@ export const inventoryIntelligenceService = {
         }
       }
 
-      // Only push non-low risks to keep UI actionable, or push max 6 items
       if (riskLevel !== 'Low') {
         risks.push({
           sku: p.sku,
@@ -112,15 +100,11 @@ export const inventoryIntelligenceService = {
       }
     });
 
-    // Sort risks by severity
     const severityMap = { 'Critical': 3, 'High': 2, 'Medium': 1, 'Low': 0 };
     return risks.sort((a, b) => severityMap[b.riskLevel] - severityMap[a.riskLevel]).slice(0, 6);
   },
 
-  /**
-   * Generates a deterministic PO based on actual low stock.
-   */
-  generateReorderPO(products: Product[], salesLogs: SaleRecord[]): ReorderPO | null {
+  generateReorderPO(products: Product[], salesLogs: SaleRecord[], suppliers: Supplier[] = []): ReorderPO | null {
     const itemsToReorder: ReorderItem[] = [];
     let totalPayable = 0;
     let totalGst = 0;
@@ -128,16 +112,16 @@ export const inventoryIntelligenceService = {
     products.forEach((p) => {
       if (p.stockLevel <= p.reorderPoint) {
         const avgDailySales = this.calculateAvgDailySales(p.id, salesLogs);
-        // Formula: Ensure we cover 14 days of average sales, or at least double the reorder point
         const safeQty = Math.ceil(avgDailySales * 14);
         let suggestedQty = Math.max(p.reorderPoint * 2 - p.stockLevel, safeQty);
         
-        // Ensure we at least order a minimum batch size of 5 for suppliers
         suggestedQty = Math.max(suggestedQty, 5);
 
-        const supplier = p.category === 'Dairy' ? 'Amul Distributors' : 
-                         p.category === 'Bakery' ? 'Local Bakers Co.' : 
-                         'Mega Retail Supply';
+        // Try to find an appropriate supplier by name containing the category, else just pick the first one, else null
+        let matchedSupplier = suppliers.find(s => s.name.toLowerCase().includes(p.category.toLowerCase()));
+        if (!matchedSupplier && suppliers.length > 0) {
+          matchedSupplier = suppliers[0]; // fallback to first available
+        }
 
         const gstRate = p.category === 'Staples' ? 5 : 12;
         const totalCost = p.cost * suggestedQty;
@@ -147,7 +131,8 @@ export const inventoryIntelligenceService = {
           productId: p.id,
           productName: p.name,
           sku: p.sku,
-          supplier,
+          supplierId: matchedSupplier ? matchedSupplier.id : null,
+          supplierName: matchedSupplier ? matchedSupplier.name : 'Needs Assignment',
           unitCost: p.cost,
           reorderQuantity: suggestedQty,
           totalCost: totalCost,
@@ -162,7 +147,6 @@ export const inventoryIntelligenceService = {
     if (itemsToReorder.length === 0) return null;
 
     return {
-      poNumber: `PO-${Date.now().toString().substring(6)}-AUTO`,
       items: itemsToReorder,
       totalPayable,
       totalGst
