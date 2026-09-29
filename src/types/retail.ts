@@ -127,3 +127,30 @@ export interface BusinessHealth {
   customerScore: number; // 0-100
 }
 
+
+export type PurchaseOrderStatus = 'draft' | 'submitted' | 'approved' | 'partially_received' | 'received' | 'cancelled';
+
+export interface PurchaseOrderItem {
+  id: string;
+  purchaseOrderId: string;
+  productId: string;
+  productName?: string;
+  quantityOrdered: number;
+  quantityReceived: number;
+  unitCost: number;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  storeId: string;
+  supplierId: string;
+  supplierName?: string;
+  poNumber: string;
+  status: PurchaseOrderStatus;
+  totalAmount: number;
+  orderedAt?: string;
+  expectedAt?: string;
+  receivedAt?: string;
+  notes?: string;
+  items?: PurchaseOrderItem[];
+}
