@@ -79,24 +79,9 @@ export const DigitalKhata: React.FC<DigitalKhataProps> = ({ onStateChange }) => 
     }
   };
   const handleRemind = async (id: string) => {
-    try {
-      const res = await fetch('/api/khata/remind', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
-
-      const contentType = res.headers.get("content-type");
-      if (res.ok && contentType && contentType.includes("application/json")) {
-        const data = await res.json();
-        setFeedback(data.message);
-      } else {
-        setFeedback("Reminder sent (Mock mode)");
-      }
-      setTimeout(() => setFeedback(null), 4000);
-    } catch (e) {
-      console.error(e);
-    }
+    // Feature not implemented in real backend.
+    setFeedback("SMS Reminders are not yet implemented in the real backend.");
+    setTimeout(() => setFeedback(null), 4000);
   };
 
   const filteredKhata = khataList.filter(k => 

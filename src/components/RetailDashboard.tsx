@@ -208,23 +208,18 @@ export const RetailDashboard: React.FC = () => {
     const checkAlerts = async () => {
       try {
         if ('Notification' in window && Notification.permission === 'granted') {
-          const res = await fetch('/api/inventory/alerts');
-          const contentType = res.headers.get("content-type");
-          if (res.ok && contentType && contentType.includes("application/json")) {
-            const data = await res.json();
-            if (data.alerts && data.alerts.length > 0) {
-              data.alerts.forEach((alert: any) => {
-                new Notification(`Stock Alert: ${alert.itemName}`, {
-                  body: alert.alertMessage,
-                });
+          // Migrated: using products state directly to evaluate alerts instead of fake API
+          const lowStockProducts = products.filter(p => p.stockLevel <= p.reorderPoint);
+          if (lowStockProducts.length > 0) {
+            lowStockProducts.forEach((alert: any) => {
+              new Notification(`Stock Alert: ${alert.name}`, {
+                body: `${alert.name} is low on stock (${alert.stockLevel} units remaining).`,
               });
-            }
-          } else {
-            console.warn('Alerts API is not available (mock fallback)');
+            });
           }
         }
       } catch (err) {
-        console.error('Failed to fetch background alerts:', err);
+        console.error('Failed to process background alerts:', err);
       }
     };
 
@@ -310,18 +305,22 @@ export const RetailDashboard: React.FC = () => {
       }
       
       try {
-        const response = await fetch('/api/inventory/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items })
-        });
-        if (!response.ok) throw new Error("Bulk import failed");
+        // Migrated: use real inventoryService for bulk creation
+        await Promise.all(
+          items.map(item =>
+            inventoryService.addProduct({
+              name: item.name,
+              category: item.category as any,
+              sku: item.sku,
+              price: item.price,
+              cost: item.cost,
+              reorderPoint: item.reorderPoint,
+              stockLevel: item.initialQty
+            })
+          )
+        );
         
-        
-        fetch('/api/inventory').then(res => (res.ok && res.headers.get("content-type")?.includes("application/json") ? res.json() : [])).then(data => {
-          setProducts(data);
-          setAllOriginalProducts(data);
-        });
+        await fetchAllData();
       } catch (err) {
         console.error(err);
         alert("Error importing CSV.");

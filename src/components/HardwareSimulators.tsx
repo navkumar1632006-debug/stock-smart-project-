@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Camera, FileText, Mic, AlertCircle, CheckCircle2, Upload, Search, Volume2, Sparkles, Languages, HelpCircle } from 'lucide-react';
 import { Product } from '../types/retail';
+import { inventoryService } from '../lib/services/inventoryService';
 // Mobile Bridge removed
 
 interface HardwareSimulatorsProps {
@@ -82,31 +83,19 @@ export const HardwareSimulators: React.FC<HardwareSimulatorsProps> = ({ products
 
     try {
       // Automatically post extracted item to store backend catalog
-      const res = await fetch('/api/inventory', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: invoiceData.itemExtracted,
-          category: "Staples",
-          sku: "FORT-MUST-1L-NEW",
-          price: invoiceData.priceExtracted,
-          cost: invoiceData.costExtracted,
-          reorderPoint: 15,
-          initialQty: invoiceData.qtyExtracted,
-          batchNumber: "B-FORT-OCR-99",
-          expiryDate: "2026-12-31"
-        })
+      await inventoryService.addProduct({
+        name: invoiceData.itemExtracted,
+        category: "Staples",
+        sku: "FORT-MUST-1L-NEW-" + Date.now(),
+        price: invoiceData.priceExtracted,
+        cost: invoiceData.costExtracted,
+        reorderPoint: 15,
+        stockLevel: invoiceData.qtyExtracted
       });
 
-      if (res.ok) {
-        setIsScanningInvoice(false);
-        setInvoiceScanResult(invoiceData);
-        
-        
-        onTriggerRefresh();
-      } else {
-        throw new Error("Failed to register parsed invoice catalog entry.");
-      }
+      setIsScanningInvoice(false);
+      setInvoiceScanResult(invoiceData);
+      onTriggerRefresh();
     } catch (e: any) {
       
       setIsScanningInvoice(false);
