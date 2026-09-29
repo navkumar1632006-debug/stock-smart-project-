@@ -1,3 +1,4 @@
+import { loyaltyService } from '../lib/services/loyaltyService';
 import React, { useState, useEffect } from 'react';
 import { Award, Star, Flame, Ticket, Loader, Sparkles } from 'lucide-react';
 
@@ -8,13 +9,19 @@ export const LoyaltyManager: React.FC = () => {
   const fetchLoyalty = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/loyalty');
-      if (res.ok) {
-        const data = await res.json();
-        setLoyaltyList(data);
-      }
+      const customers = await loyaltyService.getCustomers();
+      const mapped = customers.map(c => ({
+        id: c.id,
+        name: c.name,
+        phone: c.phone || '',
+        points: c.points_balance,
+        tier: c.points_balance >= 500 ? 'Gold' : (c.points_balance >= 200 ? 'Silver' : 'Bronze'),
+        cashbackEarned: (c.points_balance * 0.5).toFixed(2)
+      }));
+      setLoyaltyList(mapped);
     } catch (e) {
       console.error(e);
+      setLoyaltyList([]);
     } finally {
       setIsLoading(false);
     }
@@ -120,3 +127,4 @@ export const LoyaltyManager: React.FC = () => {
     </div>
   );
 };
+

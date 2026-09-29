@@ -9,6 +9,122 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      khata_customers: {
+        Row: {
+          id: string
+          store_id: string
+          name: string
+          phone: string | null
+          balance: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          store_id: string
+          name: string
+          phone?: string | null
+          balance?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          store_id?: string
+          name?: string
+          phone?: string | null
+          balance?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      khata_transactions: {
+        Row: {
+          id: string
+          khata_customer_id: string
+          store_id: string
+          type: 'credit' | 'debit'
+          amount: number
+          reference: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          khata_customer_id: string
+          store_id: string
+          type: 'credit' | 'debit'
+          amount: number
+          reference?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          khata_customer_id?: string
+          store_id?: string
+          type?: 'credit' | 'debit'
+          amount?: number
+          reference?: string | null
+          created_at?: string
+        }
+      }
+      loyalty_customers: {
+        Row: {
+          id: string
+          store_id: string
+          name: string
+          phone: string | null
+          points_balance: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          store_id: string
+          name: string
+          phone?: string | null
+          points_balance?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          store_id?: string
+          name?: string
+          phone?: string | null
+          points_balance?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      loyalty_transactions: {
+        Row: {
+          id: string
+          loyalty_customer_id: string
+          store_id: string
+          type: 'earn' | 'redeem'
+          points: number
+          reference: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          loyalty_customer_id: string
+          store_id: string
+          type: 'earn' | 'redeem'
+          points: number
+          reference?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          loyalty_customer_id?: string
+          store_id?: string
+          type?: 'earn' | 'redeem'
+          points?: number
+          reference?: string | null
+          created_at?: string
+        }
+      }
       stores: {
         Row: {
           id: string
@@ -275,6 +391,26 @@ export interface Database {
         }
         Returns: Json
       }
+      process_khata_transaction: {
+        Args: {
+          p_store_id: string
+          p_customer_id: string
+          p_type: string
+          p_amount: number
+          p_reference: string
+        }
+        Returns: void
+      }
+      process_loyalty_transaction: {
+        Args: {
+          p_store_id: string
+          p_customer_id: string
+          p_type: string
+          p_points: number
+          p_reference: string
+        }
+        Returns: void
+      }
       process_stock_adjustment: {
         Args: {
           p_store_id: string
@@ -295,3 +431,4 @@ export interface Database {
     }
   }
 }
+
