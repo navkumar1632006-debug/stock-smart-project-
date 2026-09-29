@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, UserCheck, Key, ShieldCheck, Check, UserPlus, Info } from 'lucide-react';
+import { Shield, UserCheck, Key, ShieldCheck, Check, UserPlus, Info, Loader2 } from 'lucide-react';
 import { FamilyAccountUser, StoreRole } from '../types/retail';
+import { storeService } from '../lib/services/storeService';
+import { rbacService, StoreStaff } from '../lib/services/rbacService';
 
 interface AccessControlFamilyProps {
   currentRole: StoreRole;
@@ -8,20 +10,21 @@ interface AccessControlFamilyProps {
 }
 
 export const AccessControlFamily: React.FC<AccessControlFamilyProps> = ({ currentRole, onRoleChange }) => {
-  const [users, setUsers] = useState<FamilyAccountUser[]>([]);
-  const [newUserName, setNewUserName] = useState('');
-  const [newUserPhone, setNewUserPhone] = useState('');
+  const [users, setUsers] = useState<StoreStaff[]>([]);
+  const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserRole, setNewUserRole] = useState<StoreRole>('Staff');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/family');
-      const contentType = res.headers.get("content-type"); if (res.ok && contentType && contentType.includes("application/json")) {
-        const data = await res.json();
-        setUsers(data);
+      const storeId = await storeService.getCurrentStoreId();
+      if (storeId) {
+        const staff = await rbacService.getStoreStaff(storeId);
+        setUsers(staff);
       }
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching staff:', e);
     }
   };
 
@@ -31,26 +34,28 @@ export const AccessControlFamily: React.FC<AccessControlFamilyProps> = ({ curren
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUserName || !newUserPhone) return;
+    if (!newUserEmail) return;
 
+    setIsLoading(true);
+    setError(null);
     try {
-      const res = await fetch('/api/family', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newUserName, phone: newUserPhone, role: newUserRole })
-      });
+      const storeId = await storeService.getCurrentStoreId();
+      if (!storeId) throw new Error("No active store found");
+      
+      const mappedRole = newUserRole === 'Staff' ? 'inventory_clerk' : newUserRole.toLowerCase();
+      await rbacService.inviteStaff(storeId, newUserEmail, mappedRole);
 
-      const contentType = res.headers.get("content-type"); if (res.ok && contentType && contentType.includes("application/json")) {
-        setNewUserName('');
-        setNewUserPhone('');
-        fetchUsers();
-      }
-    } catch (e) {
+      setNewUserEmail('');
+      fetchUsers();
+    } catch (e: any) {
       console.error(e);
+      setError(e.message || "Failed to invite user");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const getRoleBadgeColor = (role: StoreRole) => {
+  const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'Owner': return 'bg-rose-50 border-rose-200 text-rose-600';
       case 'Manager': return 'bg-amber-50 border-amber-200 text-amber-600';
@@ -123,11 +128,11 @@ export const AccessControlFamily: React.FC<AccessControlFamilyProps> = ({ curren
             {users.map((user) => (
               <div key={user.id} className="bg-white shadow-sm border border-slate-200 rounded-2xl border border-slate-200/30 p-2 rounded-2xl flex items-center justify-between text-xs">
                 <div>
-                  <span className="font-medium text-slate-800">{user.name}</span>
-                  <p className="text-[9px] text-slate-400 font-mono">{user.phone}</p>
+                  <span className="font-medium text-slate-800">{user.auth_email || 'Pending User'}</span>
+                  <p className="text-[9px] text-slate-400 font-mono">{user.status}</p>
                 </div>
-                <span className={`text-[8.5px] font-mono px-1.5 py-0.2 rounded border uppercase font-semibold ${getRoleBadgeColor(user.role)}`}>
-                  {user.role}
+                <span className={`text-[8.5px] font-mono px-1.5 py-0.2 rounded border uppercase font-semibold ${getRoleBadgeColor(user.role === 'inventory_clerk' ? 'Staff' : user.role)}`}>
+                  {user.role === 'inventory_clerk' ? 'Staff' : user.role}
                 </span>
               </div>
             ))}
@@ -142,19 +147,14 @@ export const AccessControlFamily: React.FC<AccessControlFamilyProps> = ({ curren
           </h4>
 
           <form onSubmit={handleAddUser} className="space-y-2 font-mono text-[10.5px]">
+            {error && <div className="text-red-500 text-[10px] mb-1">{error}</div>}
             <input
-              type="text"
-              placeholder="Sunder Lal (Staff)"
-              value={newUserName}
-              onChange={e => setNewUserName(e.target.value)}
+              type="email"
+              placeholder="staff@example.com"
+              value={newUserEmail}
+              onChange={e => setNewUserEmail(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200/30 focus:border-indigo-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
-            />
-            <input
-              type="text"
-              placeholder="+91 95555 33333"
-              value={newUserPhone}
-              onChange={e => setNewUserPhone(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200/30 focus:border-indigo-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
+              required
             />
             
             <div className="flex gap-2">
@@ -169,9 +169,10 @@ export const AccessControlFamily: React.FC<AccessControlFamilyProps> = ({ curren
               </select>
               <button
                 type="submit"
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1 rounded-xl text-xs uppercase transition"
+                disabled={isLoading}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1 rounded-xl text-xs uppercase transition disabled:opacity-50 flex items-center justify-center min-w-[70px]"
               >
-                Enroll
+                {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Enroll'}
               </button>
             </div>
           </form>
