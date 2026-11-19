@@ -3,18 +3,48 @@ import { storeApi } from './storeApi';
 import { SaleRecord } from '../../types/retail';
 
 export const salesApi = {
-  async processSale(productId: string, quantity: number, channel: string = 'In-Store'): Promise<any> {
+  async processSale(
+    productId: string,
+    quantity: number,
+    totalPrice?: number,
+    channel: 'In-Store' | 'Hyperlocal App' | 'Online' = 'In-Store'
+  ): Promise<any> {
     const storeId = await storeApi.getCurrentStoreId();
-    
-    // Execute atomic process_sale RPC
+
+    let computedTotal = totalPrice;
+    if (computedTotal === undefined) {
+      const { data: product, error: fetchErr } = await supabase
+        .from('products')
+        .select('price')
+        .eq('id', productId)
+        .single();
+      if (fetchErr || !product) {
+        throw new Error('Product not found for sale transaction.');
+      }
+      computedTotal = Number(product.price) * quantity;
+    }
+
+    const idempotencyKey = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
+    // Execute atomic process_sale RPC matching postgres signature
     const { data, error } = await supabase.rpc('process_sale', {
       p_store_id: storeId,
       p_product_id: productId,
       p_quantity: quantity,
-      p_channel: channel
+      p_total_price: computedTotal,
+      p_channel: channel,
+      p_idempotency_key: idempotencyKey,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Sale Transaction Failed:', error);
+      throw new Error(`Sale Transaction Failed: ${error.message}`);
+    }
+
+    if (data && typeof data === 'object' && 'success' in data && data.success === false) {
+      throw new Error((data as any).error || 'Transaction failed');
+    }
+
     return data;
   },
 

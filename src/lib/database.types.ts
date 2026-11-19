@@ -388,6 +388,7 @@ export interface Database {
           p_total_price: number
           p_channel: string
           p_idempotency_key: string
+          p_tax_total?: number
         }
         Returns: Json
       }
@@ -398,8 +399,9 @@ export interface Database {
           p_type: string
           p_amount: number
           p_reference: string
+          p_idempotency_key: string
         }
-        Returns: void
+        Returns: Json
       }
       process_loyalty_transaction: {
         Args: {
@@ -408,8 +410,9 @@ export interface Database {
           p_type: string
           p_points: number
           p_reference: string
+          p_idempotency_key: string
         }
-        Returns: void
+        Returns: Json
       }
       process_stock_adjustment: {
         Args: {
@@ -419,6 +422,39 @@ export interface Database {
           p_quantity: number
           p_notes: string
           p_idempotency_key: string
+          p_batch_id?: string | null
+          p_supplier_id?: string | null
+        }
+        Returns: Json
+      }
+      send_purchase_order: {
+        Args: {
+          p_store_id: string
+          p_po_id: string
+        }
+        Returns: Json
+      }
+      receive_purchase_order: {
+        Args: {
+          p_store_id: string
+          p_po_id: string
+          p_item_id: string
+          p_receive_quantity: number
+          p_batch_number: string
+          p_expiry_date: string
+          p_idempotency_key: string
+        }
+        Returns: Json
+      }
+      check_and_increment_ai_quota: {
+        Args: {
+          p_store_id: string
+        }
+        Returns: Json
+      }
+      get_store_ai_metrics: {
+        Args: {
+          p_store_id: string
         }
         Returns: Json
       }
@@ -431,4 +467,3 @@ export interface Database {
     }
   }
 }
-

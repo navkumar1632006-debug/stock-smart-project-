@@ -64,12 +64,12 @@ describe('procurementService', () => {
 
       const result = await procurementService.receiveStock('po-1', 'item-1', 10);
       
-      expect(supabase.rpc).toHaveBeenCalledWith('receive_purchase_order', {
+      expect(supabase.rpc).toHaveBeenCalledWith('receive_purchase_order', expect.objectContaining({
         p_store_id: mockStoreId,
         p_po_id: 'po-1',
         p_item_id: 'item-1',
         p_receive_quantity: 10
-      });
+      }));
       expect(result.success).toBe(true);
     });
   });

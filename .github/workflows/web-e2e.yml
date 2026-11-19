@@ -1,0 +1,85 @@
+name: Web Selenium E2E Automation Testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_base_url:
+        description: 'Base URL of target web app'
+        required: false
+        default: 'http://localhost:3000'
+  push:
+    paths:
+      - 'src/**'
+      - 'server.ts'
+      - 'BrainBattleE2E/**'
+      - '.github/workflows/web-e2e.yml'
+
+jobs:
+  selenium-e2e:
+    name: Selenium Chrome E2E Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Root Dependencies
+        run: npm ci
+
+      - name: Install Selenium E2E Dependencies
+        working-directory: ./BrainBattleE2E
+        run: npm ci || npm install
+
+      - name: Setup Chrome & ChromeDriver
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Start Background Web Application
+        run: |
+          TARGET_URL="${{ github.event.inputs.test_base_url || 'http://localhost:3000' }}"
+          echo "Target URL is $TARGET_URL"
+          if [[ "$TARGET_URL" == *"localhost"* || "$TARGET_URL" == *"127.0.0.1"* ]]; then
+            echo "Starting background Express/Vite server..."
+            npx tsx server.ts &
+            for i in {1..30}; do
+              if curl -s http://localhost:3000/api/health | grep -q "ok"; then
+                echo "Web application server is ready!"
+                break
+              fi
+              echo "Waiting for app to start... ($i/30)"
+              sleep 1
+            done
+          fi
+
+      - name: Execute Selenium E2E Tests
+        id: run_e2e
+        continue-on-error: true
+        working-directory: ./BrainBattleE2E
+        env:
+          BASE_URL: ${{ github.event.inputs.test_base_url || 'http://localhost:3000' }}
+          HEADLESS: "true"
+        run: |
+          npm test
+
+      - name: Upload Test Report Artifacts (Excel, HTML & Screenshots)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selenium-web-e2e-reports
+          path: |
+            BrainBattleE2E/reports/excel/Web_Test_Report.xlsx
+            BrainBattleE2E/reports/html/execution-report.html
+            BrainBattleE2E/reports/screenshots/
+            coverage/web-test-coverage-matrix.xlsx
+
+      - name: Verify E2E Execution Status
+        if: steps.run_e2e.outcome != 'success'
+        run: |
+          echo "::error::Selenium Web E2E test execution failed. Inspect HTML and Excel reports in artifacts."
+          exit 1

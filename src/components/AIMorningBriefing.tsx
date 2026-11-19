@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Play, Square, Volume2, Globe, TrendingUp, AlertTriangle, HelpCircle, AlertCircle } from 'lucide-react';
+import { Sparkles, Play, Square, Volume2, Globe, TrendingUp, AlertTriangle, HelpCircle, AlertCircle, Cpu } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { supabase } from '../lib/supabase/client';
 import { Card, CardHeader, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
@@ -15,28 +16,17 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [selectedLang, setSelectedLang] = useState<string>('en-IN');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isEdgeAi, setIsEdgeAi] = useState<boolean>(false);
 
   const { products, batches } = useInventory();
+
   const fetchBriefing = async () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      let text = "### 1. Inventory & Restock Alerts\n";
-      
+      // 1. Deterministic Local Metrics Computation
       const lowStock = products.filter(p => p.stockLevel <= p.reorderPoint && p.stockLevel > 0);
       const outOfStock = products.filter(p => p.stockLevel === 0);
-      
-      if (outOfStock.length > 0) {
-        text += `- **${outOfStock.length} items** are out of stock. Recommend immediate supplier contact for: ${outOfStock.slice(0,3).map(p=>p.name).join(', ')}.\n`;
-      }
-      if (lowStock.length > 0) {
-        text += `- **${lowStock.length} items** are running low. Preparing draft Purchase Orders.\n`;
-      }
-      if (outOfStock.length === 0 && lowStock.length === 0) {
-        text += `- Inventory is extremely healthy. No critical restock needed today.\n`;
-      }
-
-      text += "\n### 2. Spoilage & Expiry Prevention\n";
       const today = new Date().getTime();
       const nextWeek = today + 7 * 24 * 60 * 60 * 1000;
       
@@ -47,17 +37,63 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
       
       const expired = batches.filter(b => b.currentQuantity > 0 && new Date(b.expiryDate).getTime() <= today);
 
-      if (expired.length > 0) {
-        text += `- **${expired.length} batches** have expired. Please remove from shelves immediately to prevent accidental sale.\n`;
+      let deterministicText = "### 1. Inventory & Restock Alerts\n";
+      if (outOfStock.length > 0) {
+        deterministicText += `- **${outOfStock.length} items** are out of stock. Recommend immediate supplier contact for: ${outOfStock.slice(0,3).map(p=>p.name).join(', ')}.\n`;
       }
-      if (expiringSoon.length > 0) {
-        text += `- **${expiringSoon.length} batches** expiring within 7 days. Recommended action: Route to POS as 20% discount items.\n`;
+      if (lowStock.length > 0) {
+        deterministicText += `- **${lowStock.length} items** are running low. Preparing draft Purchase Orders.\n`;
       }
-      if (expired.length === 0 && expiringSoon.length === 0) {
-        text += `- No imminent expiry risks detected. Freshness index is optimal.\n`;
+      if (outOfStock.length === 0 && lowStock.length === 0) {
+        deterministicText += `- Inventory is extremely healthy. No critical restock needed today.\n`;
       }
 
-      setBriefText(text);
+      deterministicText += "\n### 2. Spoilage & Expiry Prevention\n";
+      if (expired.length > 0) {
+        deterministicText += `- **${expired.length} batches** have expired. Please remove from shelves immediately to prevent accidental sale.\n`;
+      }
+      if (expiringSoon.length > 0) {
+        deterministicText += `- **${expiringSoon.length} batches** expiring within 7 days. Recommended action: Route to POS as 20% discount items.\n`;
+      }
+      if (expired.length === 0 && expiringSoon.length === 0) {
+        deterministicText += `- No imminent expiry risks detected. Freshness index is optimal.\n`;
+      }
+
+      // 2. Pre-calculated metrics payload for Edge Function
+      const metricsPayload = {
+        totalProducts: products.length,
+        lowStockItems: lowStock.map(p => ({ name: p.name, stock: p.stockLevel, reorderPoint: p.reorderPoint })),
+        outOfStockItems: outOfStock.map(p => ({ name: p.name, sku: p.sku })),
+        expiringSoonBatches: expiringSoon.map(b => ({
+          productName: products.find(p => p.id === b.productId)?.name || 'Unknown Item',
+          quantity: b.currentQuantity,
+          expiryDate: b.expiryDate
+        })),
+        expiredBatchesCount: expired.length
+      };
+
+      // 3. Hybrid AI Call: Invoke Supabase Edge Function to explain local metrics via Gemini
+      try {
+        const { data, error } = await supabase.functions.invoke('ai-assistant', {
+          body: {
+            task: 'briefing',
+            metrics: metricsPayload
+          }
+        });
+
+        if (!error && data?.explanation) {
+          setBriefText(data.explanation);
+          setIsEdgeAi(true);
+        } else {
+          // Fallback to deterministic local engine
+          setBriefText(deterministicText);
+          setIsEdgeAi(false);
+        }
+      } catch (invokeErr) {
+        console.warn('Edge AI briefing unavailable, falling back to local deterministic engine:', invokeErr);
+        setBriefText(deterministicText);
+        setIsEdgeAi(false);
+      }
     } catch (e: any) {
       console.error(e);
       setErrorMsg("Briefing failed to build.");
@@ -133,9 +169,17 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
           <div>
             <div className="flex items-center space-x-2">
               <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">AI Daily Morning Briefing</h3>
-              <Badge variant="default" className="bg-indigo-500/20 border-indigo-200">
-                AI Mode
-              </Badge>
+              {isEdgeAi ? (
+                <Badge variant="default" className="bg-indigo-500/20 text-indigo-700 border-indigo-200 flex items-center space-x-1">
+                  <Sparkles className="w-3 h-3 text-indigo-600 mr-1" />
+                  <span>Hugging Face AI</span>
+                </Badge>
+              ) : (
+                <Badge variant="default" className="bg-slate-100 text-slate-600 border-slate-200 flex items-center space-x-1">
+                  <Cpu className="w-3 h-3 text-slate-500 mr-1" />
+                  <span>Deterministic Engine</span>
+                </Badge>
+              )}
             </div>
             <p className="text-xs text-slate-500/90 font-mono">Generative store operations intelligence and predictive actions</p>
           </div>
@@ -207,13 +251,11 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
           </div>
         ) : (
           <CardContent className="bg-white shadow-sm border border-slate-200/30 rounded-2xl p-6 md:p-6 text-slate-800">
-            {/* Format paragraphs elegantly */}
             {briefText.split('\n').map((line, idx) => {
               const cleaned = line.trim();
               if (!cleaned) return <div key={idx} className="h-2" />;
 
-              // Highlight critical parts
-              let renderedLine: React.ReactNode = line;
+              // Bullet formatting
               if (cleaned.startsWith('-') || cleaned.startsWith('*')) {
                 const bulletContent = cleaned.substring(1).trim();
                 return (
@@ -235,7 +277,7 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
 
               return (
                 <p key={idx} className="text-sm leading-relaxed font-sans text-slate-700 my-1.5">
-                  {renderedLine}
+                  {line}
                 </p>
               );
             })}
@@ -247,7 +289,9 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
       <div className="mt-4 flex items-center justify-between text-xs font-mono text-slate-400 bg-slate-50/20 px-3.5 py-2.5 rounded-2xl border border-slate-200/30">
         <span className="flex items-center">
           <TrendingUp className="w-3.5 h-3.5 text-indigo-600 mr-1.5" />
-          Projections updated daily based on historic sales run-rates.
+          {isEdgeAi
+            ? "Narrated by Hugging Face (Mistral / Llama-3) via Supabase Edge Function"
+            : "Computed deterministically based on local store metrics."}
         </span>
         <Button
           onClick={fetchBriefing}
@@ -261,4 +305,3 @@ export const AIMorningBriefing: React.FC<AIMorningBriefingProps> = ({ onRefreshT
     </Card>
   );
 };
-

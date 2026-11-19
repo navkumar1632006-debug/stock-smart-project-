@@ -1,5 +1,6 @@
 {
-  "name": "react-example",
+  "name": "stocksmart",
+  "description": "StockSmart - Retail Inventory & Operations Platform",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +11,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:load": "k6 run --summary-export=summary.json scripts/load-test.js && node scripts/parseK6Summary.js"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -33,6 +35,7 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.6.0",
     "@playwright/test": "^1.63.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -43,6 +46,7 @@
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
+    "exceljs": "^4.4.0",
     "happy-dom": "^20.10.6",
     "jsdom": "^29.1.1",
     "puppeteer": "^25.3.0",

@@ -51,22 +51,22 @@ ALTER TABLE public.loyalty_customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.loyalty_transactions ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies (Store Ownership)
-CREATE POLICY ""khata_customers_store_isolation"" ON public.khata_customers
+CREATE POLICY "khata_customers_store_isolation" ON public.khata_customers
     FOR ALL USING (store_id IN (
         SELECT id FROM stores WHERE owner_id = auth.uid()
     ));
 
-CREATE POLICY ""khata_transactions_store_isolation"" ON public.khata_transactions
+CREATE POLICY "khata_transactions_store_isolation" ON public.khata_transactions
     FOR ALL USING (store_id IN (
         SELECT id FROM stores WHERE owner_id = auth.uid()
     ));
 
-CREATE POLICY ""loyalty_customers_store_isolation"" ON public.loyalty_customers
+CREATE POLICY "loyalty_customers_store_isolation" ON public.loyalty_customers
     FOR ALL USING (store_id IN (
         SELECT id FROM stores WHERE owner_id = auth.uid()
     ));
 
-CREATE POLICY ""loyalty_transactions_store_isolation"" ON public.loyalty_transactions
+CREATE POLICY "loyalty_transactions_store_isolation" ON public.loyalty_transactions
     FOR ALL USING (store_id IN (
         SELECT id FROM stores WHERE owner_id = auth.uid()
     ));

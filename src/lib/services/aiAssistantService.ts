@@ -1,15 +1,20 @@
 import { Product, InventoryBatch, SaleRecord } from '../../types/retail';
 import { inventoryIntelligenceService } from './inventoryIntelligenceService';
 import { calculateDynamicEnsembleForecast } from '../forecaster';
+import { supabase } from '../supabase/client';
+import { storeService } from './storeService';
 
 export const aiAssistantService = {
-  // Configuration for future LLM integration
+  // Configuration for hybrid architecture
   config: {
-    provider: (import.meta as any).env?.VITE_AI_PROVIDER || 'StockSmart Deterministic Engine',
-    model: (import.meta as any).env?.VITE_AI_MODEL || 'Local Analysis',
-    isExternalLLM: false
+    provider: 'StockSmart Hybrid Intelligence (Local Math + Hugging Face Edge Function)',
+    model: 'Mistral-7B / Llama-3 (via Edge Function) with Deterministic Fallback',
+    isExternalLLM: true
   },
 
+  // --------------------------------------------------------------------------
+  // 1. Preserved Local Deterministic Logic (The Self-Reliant Math Engine)
+  // --------------------------------------------------------------------------
   generateResponse(
     query: string,
     products: Product[],
@@ -165,5 +170,71 @@ export const aiAssistantService = {
 
     // Default fallback
     return "I am your StockSmart AI Assistant. You can ask me questions like:\n\n- *Which products are low in stock?*\n- *What should I restock?*\n- *Which products are selling fastest?*\n- *Which products are expiring?*\n- *Give me today's sales summary*";
+  },
+
+  // --------------------------------------------------------------------------
+  // 2. Hybrid AI Execution (Local Metrics Calculation + Gemini Edge Explanation)
+  // --------------------------------------------------------------------------
+  async generateHybridResponse(
+    query: string,
+    products: Product[],
+    batches: InventoryBatch[],
+    salesLogs: SaleRecord[] = [],
+    task: 'briefing' | 'qa' | 'forecast_explanation' = 'qa'
+  ): Promise<{ text: string; isEdgeAi: boolean }> {
+    // 1. Calculate local deterministic answer as instantaneous fallback
+    const fallbackAnswer = this.generateResponse(query, products, batches, salesLogs);
+
+    // 2. Pre-aggregate local metrics for Gemini to explain
+    const today = Date.now();
+    const nextWeek = today + 7 * 24 * 60 * 60 * 1000;
+    const metrics = {
+      totalProductsCount: products.length,
+      lowStockProducts: products
+        .filter(p => p.stockLevel <= p.reorderPoint)
+        .map(p => ({ name: p.name, stock: p.stockLevel, reorderPoint: p.reorderPoint })),
+      outOfStockProducts: products
+        .filter(p => p.stockLevel === 0)
+        .map(p => ({ name: p.name, sku: p.sku })),
+      batchesExpiringSoon: batches
+        .filter(b => {
+          const t = new Date(b.expiryDate).getTime();
+          return b.currentQuantity > 0 && t > today && t <= nextWeek;
+        })
+        .map(b => ({
+          name: products.find(p => p.id === b.productId)?.name || 'Unknown',
+          quantity: b.currentQuantity,
+          expiryDate: b.expiryDate
+        })),
+      expiredBatchesCount: batches.filter(b => b.currentQuantity > 0 && new Date(b.expiryDate).getTime() <= today).length,
+      recentSalesCount: salesLogs.length,
+      recentRevenue: salesLogs.reduce((acc, s) => acc + s.totalPrice, 0)
+    };
+
+    try {
+      let storeId: string | null = null;
+      try {
+        storeId = await storeService.getCurrentStoreId();
+      } catch {
+        // Fall back to server-side store resolution if storeService is not available
+      }
+
+      const { data, error } = await supabase.functions.invoke('ai-assistant', {
+        body: {
+          storeId,
+          task,
+          query,
+          metrics
+        }
+      });
+
+      if (!error && data?.explanation) {
+        return { text: data.explanation, isEdgeAi: true };
+      }
+    } catch (e) {
+      console.warn('[StockSmart AI] Edge function invocation skipped/failed, using local deterministic engine:', e);
+    }
+
+    return { text: fallbackAnswer, isEdgeAi: false };
   }
 };

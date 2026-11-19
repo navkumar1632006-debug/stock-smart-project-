@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "StockSmart",
+    "slug": "stocksmart",
     "version": "1.0.0",
+    "scheme": "stocksmart",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -10,6 +11,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.stocksmart.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -20,6 +22,20 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow StockSmart to access your camera to scan barcodes and manage inventory."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "97678e89-f36f-4cd7-942e-2e0dd915f02e"
+      }
     }
   }
 }

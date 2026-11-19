@@ -207,9 +207,11 @@ export function calculateDynamicEnsembleForecast(
   }
 
   // 10. GENERATE EXPERIENCED SHOPKEEPER OPERATIONAL INSIGHTS
+  const margin = Number(product.price ?? (product as any).unitPrice ?? 0) - Number(product.cost ?? (product as any).costPrice ?? 0);
+  const expectedProfit = Math.max(0, Math.round(predictedDemandNext7d * (isNaN(margin) ? 0 : margin)));
   let insight = "";
   if (reorderUrgency === 'Critical') {
-    insight = `CRITICAL ALERT: Current stock of ${currentStock} units is below your reorder threshold of ${product.reorderPoint}. Standard supply-chain lead times are 2 days. Placing an order of ${reorderQuantity} units with your main distributor immediately is highly recommended to capture the ₹${Math.round(predictedDemandNext7d * (product.price - product.cost))} expected profit over the next 7 days.`;
+    insight = `CRITICAL ALERT: Current stock of ${currentStock} units is below your reorder threshold of ${product.reorderPoint}. Standard supply-chain lead times are 2 days. Placing an order of ${reorderQuantity} units with your main distributor immediately is highly recommended to capture the ₹${expectedProfit} expected profit over the next 7 days.`;
   } else if (reorderUrgency === 'Medium') {
     insight = `PREVENTIVE ADVICE: Buffer stock is entering the safety zone (${currentStock} units left). Weekend household acceleration is highly correlated. Reordering ${reorderQuantity} units today secures clean delivery before peak customer footfalls.`;
   } else if (reorderUrgency === 'Low') {

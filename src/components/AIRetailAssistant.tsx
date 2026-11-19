@@ -49,9 +49,15 @@ export const AIRetailAssistant: React.FC<AIRetailAssistantProps> = ({ products, 
     setMessages(prev => [...prev, userMsg]);
     setIsSending(true);
 
-        try {
-      // Use real data deterministic service instead of frontend mock fetch
-      const generated = aiAssistantService.generateResponse(textToSend, products, batches, []);
+    try {
+      // Hybrid AI: Uses Edge Function (Gemini) with local deterministic fallback
+      const { text: generated } = await aiAssistantService.generateHybridResponse(
+        textToSend,
+        products,
+        batches,
+        [],
+        'qa'
+      );
       
       const replyMsg: Message = {
         id: `msg-${Date.now() + 1}`,
@@ -59,14 +65,13 @@ export const AIRetailAssistant: React.FC<AIRetailAssistantProps> = ({ products, 
         content: generated
       };
       
-      setTimeout(() => {
-        setMessages(prev => [...prev, replyMsg]);
-        setIsSending(false);
-      }, 600); // Slight delay for realistic UX
+      setMessages(prev => [...prev, replyMsg]);
+      setIsSending(false);
     } catch (e: any) {
+      const fallback = aiAssistantService.generateResponse(textToSend, products, batches, []);
       setMessages(prev => [
         ...prev,
-        { id: `error-${Date.now()}`, role: 'assistant', content: 'dY" Error: Unable to compute response from data layer.' }
+        { id: `msg-${Date.now() + 1}`, role: 'assistant', content: fallback }
       ]);
       setIsSending(false);
     }

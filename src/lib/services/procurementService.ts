@@ -124,11 +124,21 @@ export const procurementService = {
   async updateOrderStatus(poId: string, newStatus: PurchaseOrderStatus): Promise<void> {
     const storeId = await storeService.getCurrentStoreId();
     
-    const updates: any = { status: newStatus, updated_at: new Date().toISOString() };
-    if (newStatus === 'submitted') {
-      updates.ordered_at = new Date().toISOString();
+    // Dedicated transition RPC for sending a draft purchase order
+    if (newStatus === 'submitted' || (newStatus as string) === 'SENT') {
+      const { error } = await supabase.rpc('send_purchase_order', {
+        p_store_id: storeId,
+        p_po_id: poId,
+      });
+
+      if (error) {
+        console.error('Failed to send purchase order:', error);
+        throw new Error(`Failed to send PO: ${error.message}`);
+      }
+      return;
     }
-    
+
+    const updates: any = { status: newStatus };
     const { error } = await supabase
       .from('purchase_orders')
       .update(updates)
@@ -138,14 +148,27 @@ export const procurementService = {
     if (error) throw new Error('Failed to update PO status.');
   },
 
-  async receiveStock(poId: string, itemId: string, quantityToReceive: number): Promise<any> {
+  async receiveStock(
+    poId: string, 
+    itemId: string, 
+    quantityToReceive: number,
+    batchNumber?: string,
+    expiryDate?: string,
+    idempotencyKey?: string
+  ): Promise<any> {
     const storeId = await storeService.getCurrentStoreId();
+    const effectiveBatchNumber = batchNumber || `LOT-${poId.slice(0, 8)}-${Date.now().toString().slice(-4)}`;
+    const effectiveExpiryDate = expiryDate || new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const effectiveIdempotencyKey = idempotencyKey || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `rcv-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
 
     const { data, error } = await supabase.rpc('receive_purchase_order', {
       p_store_id: storeId,
       p_po_id: poId,
       p_item_id: itemId,
-      p_receive_quantity: quantityToReceive
+      p_receive_quantity: quantityToReceive,
+      p_batch_number: effectiveBatchNumber,
+      p_expiry_date: effectiveExpiryDate,
+      p_idempotency_key: effectiveIdempotencyKey
     });
 
     if (error) throw new Error(`Failed to receive stock: ${error.message}`);

@@ -1,0 +1,31 @@
+{
+  "name": "brainbattle-web-e2e",
+  "version": "1.0.0",
+  "description": "Comprehensive Selenium Web End-to-End Testing Framework for StockSmart AI",
+  "main": "config/selenium.config.js",
+  "type": "module",
+  "scripts": {
+    "test": "mocha --timeout 60000 --exit \"tests/**/*.test.js\"",
+    "test:headless": "HEADLESS=true mocha --timeout 60000 --exit \"tests/**/*.test.js\"",
+    "test:auth": "mocha --timeout 60000 --exit \"tests/authentication/**/*.test.js\"",
+    "test:dashboard": "mocha --timeout 60000 --exit \"tests/dashboard/**/*.test.js\"",
+    "test:inventory": "mocha --timeout 60000 --exit \"tests/inventory/**/*.test.js\"",
+    "test:pos": "mocha --timeout 60000 --exit \"tests/pos/**/*.test.js\"",
+    "test:expiry": "mocha --timeout 60000 --exit \"tests/expiry/**/*.test.js\"",
+    "test:suppliers": "mocha --timeout 60000 --exit \"tests/suppliers/**/*.test.js\"",
+    "test:khata": "mocha --timeout 60000 --exit \"tests/khata/**/*.test.js\"",
+    "test:forecasting": "mocha --timeout 60000 --exit \"tests/forecasting/**/*.test.js\"",
+    "test:marketplace": "mocha --timeout 60000 --exit \"tests/marketplace/**/*.test.js\"",
+    "test:rbac": "mocha --timeout 60000 --exit \"tests/rbac/**/*.test.js\"",
+    "test:regression": "mocha --timeout 60000 --exit \"tests/regression/**/*.test.js\"",
+    "generate-matrix": "node utils/generateCoverageMatrix.js"
+  },
+  "dependencies": {
+    "chai": "^5.2.0",
+    "chromedriver": "^133.0.0",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "mocha": "^11.1.0",
+    "selenium-webdriver": "^4.29.0"
+  }
+}

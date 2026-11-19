@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StockSmart AI — Web E2E Test Execution Report</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --pass: #10b981;
+      --fail: #ef4444;
+      --primary: #6366f1;
+    }
+    body {
+      margin: 0;
+      padding: 30px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .header {
+      margin-bottom: 30px;
+    }
+    h1 { margin: 0 0 8px 0; font-size: 26px; }
+    .sub { color: var(--text-muted); font-size: 14px; }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card-num { font-size: 32px; font-weight: bold; margin-top: 6px; }
+    .pass-color { color: var(--pass); }
+    .fail-color { color: var(--fail); }
+    .primary-color { color: var(--primary); }
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .cat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .cat-title { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+    .cat-stats { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+    .bar-container { background: #334155; border-radius: 4px; height: 6px; overflow: hidden; }
+    .bar-fill { background: var(--pass); height: 100%; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    th { background: #182234; color: var(--text-muted); text-transform: uppercase; font-size: 12px; }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-pass { background: rgba(16, 185, 129, 0.2); color: var(--pass); }
+    .badge-fail { background: rgba(239, 68, 68, 0.2); color: var(--fail); }
+    .badge-skip { background: rgba(148, 163, 184, 0.2); color: var(--text-muted); }
+    .err-text { color: var(--fail); font-family: monospace; font-size: 12px; }
+    a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>StockSmart AI — Web E2E Test Execution Report</h1>
+    <div class="sub">Generated: 2026-11-02T18:27:34.465Z | Target: http://localhost:3000 | Engine: Chrome (Headless)</div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="card">
+      <div class="sub">Total Executed</div>
+      <div class="card-num primary-color">19</div>
+    </div>
+    <div class="card">
+      <div class="sub">Passed Tests</div>
+      <div class="card-num pass-color">9</div>
+    </div>
+    <div class="card">
+      <div class="sub">Failed Tests</div>
+      <div class="card-num fail-color">0</div>
+    </div>
+    <div class="card">
+      <div class="sub">Pass Rate</div>
+      <div class="card-num pass-color">47.4%</div>
+    </div>
+    <div class="card">
+      <div class="sub">Total Duration</div>
+      <div class="card-num">4.33s</div>
+    </div>
+  </div>
+
+  <h2>Categories Breakdown</h2>
+  <div class="cat-grid">
+    
+      <div class="cat-card">
+        <div class="cat-title">Authentication</div>
+        <div class="cat-stats">6/6 Passed (100%)</div>
+        <div class="bar-container">
+          <div class="bar-fill" style="width: 100%;"></div>
+        </div>
+      </div>
+    
+      <div class="cat-card">
+        <div class="cat-title">Operations</div>
+        <div class="cat-stats">3/3 Passed (100%)</div>
+        <div class="bar-container">
+          <div class="bar-fill" style="width: 100%;"></div>
+        </div>
+      </div>
+    
+      <div class="cat-card">
+        <div class="cat-title">Inventory</div>
+        <div class="cat-stats">0/3 Passed (0%)</div>
+        <div class="bar-container">
+          <div class="bar-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+    
+      <div class="cat-card">
+        <div class="cat-title">POS</div>
+        <div class="cat-stats">0/3 Passed (0%)</div>
+        <div class="bar-container">
+          <div class="bar-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+    
+      <div class="cat-card">
+        <div class="cat-title">Expiry</div>
+        <div class="cat-stats">0/1 Passed (0%)</div>
+        <div class="bar-container">
+          <div class="bar-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+    
+      <div class="cat-card">
+        <div class="cat-title">Khata</div>
+        <div class="cat-stats">0/1 Passed (0%)</div>
+        <div class="bar-container">
+          <div class="bar-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+    
+      <div class="cat-card">
+        <div class="cat-title">RBAC</div>
+        <div class="cat-stats">0/1 Passed (0%)</div>
+        <div class="bar-container">
+          <div class="bar-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+    
+      <div class="cat-card">
+        <div class="cat-title">Regression</div>
+        <div class="cat-stats">0/1 Passed (0%)</div>
+        <div class="bar-container">
+          <div class="bar-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+    
+  </div>
+
+  <h2>Test Execution Inventory</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Test ID</th>
+        <th>Category</th>
+        <th>Scenario</th>
+        <th>Status</th>
+        <th>Duration</th>
+        <th>Failure Details</th>
+        <th>Artifact</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td><code>AUTH-001</code></td>
+        <td><strong>Authentication</strong></td>
+        <td>AUTH-001: Should display login page with email and password inputs</td>
+        <td><span class="badge badge-pass">PASS</span></td>
+        <td>567 ms</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>AUTH-002</code></td>
+        <td><strong>Authentication</strong></td>
+        <td>AUTH-002: Should validate empty email submission and show required message</td>
+        <td><span class="badge badge-pass">PASS</span></td>
+        <td>272 ms</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>AUTH-003</code></td>
+        <td><strong>Authentication</strong></td>
+        <td>AUTH-003: Should validate incorrect email format</td>
+        <td><span class="badge badge-pass">PASS</span></td>
+        <td>340 ms</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>AUTH-004</code></td>
+        <td><strong>Authentication</strong></td>
+        <td>AUTH-004: Should show invalid credentials error on unregistered user attempt</td>
+        <td><span class="badge badge-pass">PASS</span></td>
+        <td>1867 ms</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>AUTH-005</code></td>
+        <td><strong>Authentication</strong></td>
+        <td>AUTH-005: Should toggle into Forgot Password mode</td>
+        <td><span class="badge badge-pass">PASS</span></td>
+        <td>155 ms</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>AUTH-006</code></td>
+        <td><strong>Authentication</strong></td>
+        <td>AUTH-006: Should navigate to Signup screen when clicking Sign up now</td>
+        <td><span class="badge badge-pass">PASS</span></td>
+        <td>624 ms</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>DASH-001</code></td>
+        <td><strong>Operations</strong></td>
+        <td>DASH-001: Should navigate and establish root document title and structure</td>
+        <td><span class="badge badge-pass">PASS</span></td>
+        <td>355 ms</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>DASH-002</code></td>
+        <td><strong>Operations</strong></td>
+        <td>DASH-002: Should verify responsive viewport container rendering</td>
+        <td><span class="badge badge-pass">PASS</span></td>
+        <td>95 ms</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>DASH-003</code></td>
+        <td><strong>Operations</strong></td>
+        <td>DASH-003: Should confirm root React app mounting without fatal script unhandled exception</td>
+        <td><span class="badge badge-pass">PASS</span></td>
+        <td>58 ms</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>INV-001</code></td>
+        <td><strong>Inventory</strong></td>
+        <td>Catalog table column verification</td>
+        <td><span class="badge badge-skip">BLOCKED</span></td>
+        <td>0 ms</td>
+        <td><span class="err-text">Remote Supabase project (dsshzxopmfxzzihhiopi.supabase.co) DNS unresolvable / expired</span></td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>INV-002</code></td>
+        <td><strong>Inventory</strong></td>
+        <td>Real-time query filtering on SKU or product name</td>
+        <td><span class="badge badge-skip">BLOCKED</span></td>
+        <td>0 ms</td>
+        <td><span class="err-text">Remote Supabase project (dsshzxopmfxzzihhiopi.supabase.co) DNS unresolvable / expired</span></td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>INV-003</code></td>
+        <td><strong>Inventory</strong></td>
+        <td>Add product modal field validations</td>
+        <td><span class="badge badge-skip">BLOCKED</span></td>
+        <td>0 ms</td>
+        <td><span class="err-text">Remote Supabase project (dsshzxopmfxzzihhiopi.supabase.co) DNS unresolvable / expired</span></td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>POS-001</code></td>
+        <td><strong>POS</strong></td>
+        <td>POS terminal catalog and Bill Summary sidebar rendering</td>
+        <td><span class="badge badge-skip">BLOCKED</span></td>
+        <td>0 ms</td>
+        <td><span class="err-text">Remote Supabase project (dsshzxopmfxzzihhiopi.supabase.co) DNS unresolvable / expired</span></td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>POS-002</code></td>
+        <td><strong>POS</strong></td>
+        <td>Product addition to checkout cart with quantity and subtotal</td>
+        <td><span class="badge badge-skip">BLOCKED</span></td>
+        <td>0 ms</td>
+        <td><span class="err-text">Remote Supabase project (dsshzxopmfxzzihhiopi.supabase.co) DNS unresolvable / expired</span></td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>POS-003</code></td>
+        <td><strong>POS</strong></td>
+        <td>Tax arithmetic across Dairy (5%), Pharmacy (12%), Grocery (18%)</td>
+        <td><span class="badge badge-skip">BLOCKED</span></td>
+        <td>0 ms</td>
+        <td><span class="err-text">Remote Supabase project (dsshzxopmfxzzihhiopi.supabase.co) DNS unresolvable / expired</span></td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>EXP-001</code></td>
+        <td><strong>Expiry</strong></td>
+        <td>Flag near-expiry batches within 7 days</td>
+        <td><span class="badge badge-skip">BLOCKED</span></td>
+        <td>0 ms</td>
+        <td><span class="err-text">Remote Supabase project (dsshzxopmfxzzihhiopi.supabase.co) DNS unresolvable / expired</span></td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>KHT-001</code></td>
+        <td><strong>Khata</strong></td>
+        <td>Customer balance ledger records display</td>
+        <td><span class="badge badge-skip">BLOCKED</span></td>
+        <td>0 ms</td>
+        <td><span class="err-text">Remote Supabase project (dsshzxopmfxzzihhiopi.supabase.co) DNS unresolvable / expired</span></td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>RBAC-001</code></td>
+        <td><strong>RBAC</strong></td>
+        <td>Cashier role cannot access administrative controls or store delete</td>
+        <td><span class="badge badge-skip">BLOCKED</span></td>
+        <td>0 ms</td>
+        <td><span class="err-text">Remote Supabase project (dsshzxopmfxzzihhiopi.supabase.co) DNS unresolvable / expired</span></td>
+        <td>—</td>
+      </tr>
+    
+      <tr>
+        <td><code>REG-001</code></td>
+        <td><strong>Regression</strong></td>
+        <td>Catalog inspect -> Stock check -> POS Cart -> Bill Checkout</td>
+        <td><span class="badge badge-skip">BLOCKED</span></td>
+        <td>0 ms</td>
+        <td><span class="err-text">Remote Supabase project (dsshzxopmfxzzihhiopi.supabase.co) DNS unresolvable / expired</span></td>
+        <td>—</td>
+      </tr>
+    
+    </tbody>
+  </table>
+</body>
+</html>
+  

@@ -78,6 +78,7 @@ export const inventoryService = {
         category: productPayload.category,
         sku: productPayload.sku,
         price: productPayload.price,
+        selling_price: (productPayload as any).sellingPrice ?? productPayload.price ?? 0,
         cost: productPayload.cost,
         stock_level: productPayload.stockLevel,
         reorder_point: productPayload.reorderPoint,
@@ -111,7 +112,10 @@ export const inventoryService = {
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.category !== undefined) dbUpdates.category = updates.category;
     if (updates.sku !== undefined) dbUpdates.sku = updates.sku;
-    if (updates.price !== undefined) dbUpdates.price = updates.price;
+    if (updates.price !== undefined) {
+      dbUpdates.price = updates.price;
+      dbUpdates.selling_price = (updates as any).sellingPrice ?? updates.price;
+    }
     if (updates.cost !== undefined) dbUpdates.cost = updates.cost;
     if (updates.stockLevel !== undefined) dbUpdates.stock_level = updates.stockLevel;
     if (updates.reorderPoint !== undefined) dbUpdates.reorder_point = updates.reorderPoint;

@@ -13,6 +13,7 @@ expo-env.d.ts
 .kotlin/
 *.orig.*
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
@@ -31,6 +32,8 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env*
 .env*.local
 
 # typescript
@@ -39,3 +42,22 @@ yarn-error.*
 # generated native folders
 /ios
 # /android
+
+# Ignore Gradle Daemon JVM properties
+android/gradle/gradle-daemon-jvm.properties
+
+local.properties
+**/local.properties
+*.log
+logcat*.txt
+screen_*.png
+rc1_*.png
+*.xml
+launch_screen.png
+android/app/src/main/assets/index.android.bundle
+android/app/src/main/res/drawable-mdpi/
+android/app/src/main/res/drawable-xhdpi/
+android/app/src/main/res/drawable-xxhdpi/
+android/app/src/main/res/drawable-xxxhdpi/
+android/app/src/main/res/raw/
+
