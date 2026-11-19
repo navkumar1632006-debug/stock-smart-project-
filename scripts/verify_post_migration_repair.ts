@@ -11,7 +11,8 @@ const TEST_EMAIL = process.env.TEST_EMAIL || 'fstocksmart@gmail.com';
 const TEST_PASSWORD = process.env.TEST_PASSWORD || 'CtjAVgnd36A@HS3';
 
 interface StepResult {
-  step: string;
+  stepNumber: number;
+  scenario: string;
   expected: string;
   actual: string;
   status: 'PASS' | 'FAIL' | 'BLOCKED';
@@ -20,15 +21,15 @@ interface StepResult {
 
 const results: StepResult[] = [];
 
-async function runPostMigrationVerification() {
+async function runAll14Scenarios() {
   console.log('================================================================');
-  console.log('StockSmart AI: Post-Migration Comprehensive Repair Verification');
+  console.log('StockSmart AI: 14-Scenario Database Repair Verification Suite');
   console.log('Target Project:', SUPABASE_URL);
   console.log('================================================================\n');
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Auth
+  // Authenticate as Store Manager
   const { data: auth, error: authErr } = await supabase.auth.signInWithPassword({
     email: TEST_EMAIL,
     password: TEST_PASSWORD,
@@ -43,27 +44,42 @@ async function runPostMigrationVerification() {
 
   const { data: store } = await supabase.from('stores').select('id, name').limit(1).single();
   const storeId = store?.id;
-  console.log('✅ Active Store:', store?.name, `(ID: ${storeId})\n`);
+  console.log('✅ Active Store Context:', store?.name, `(ID: ${storeId})\n`);
 
+  // Query an active supplier for purchase order tests
+  const { data: supplier } = await supabase
+    .from('suppliers')
+    .select('id, name')
+    .or(`store_id.eq.${storeId},store_id.is.null`)
+    .limit(1)
+    .single();
+
+  const supplierId = supplier?.id;
+  console.log('✅ Active Supplier Context:', supplier?.name || 'Shared FMCG', `(ID: ${supplierId})\n`);
+
+  // Track created fixtures for atomic cleanup
   let testProductId: string | null = null;
   let testKhataId: string | null = null;
+  let testLoyaltyId: string | null = null;
+  let testPoId: string | null = null;
+  let testPoiId: string | null = null;
 
-  // --------------------------------------------------------------------------
-  // TEST 1: Product insertion with zero initial stock (omitted stock_level)
-  // --------------------------------------------------------------------------
-  console.log('[1/7] Testing Product insertion with zero initial stock...');
+  // ==========================================================================
+  // SCENARIO 1: Product Zero-Stock Insertion (Permitted Zero-Value Insert)
+  // ==========================================================================
+  console.log('[1/14] Testing Product zero-stock insertion...');
   const testSku = `VERIF-SKU-${Date.now().toString().slice(-6)}`;
   try {
     const { data: p1, error: p1Err } = await supabase
       .from('products')
       .insert({
         store_id: storeId,
-        name: 'Post-Migration Test Basmati Rice 1kg',
+        name: 'Gate-Check Basmati Rice 1kg',
         sku: testSku,
         category: 'Staples',
-        price: 120.00,
-        selling_price: 120.00,
-        cost: 90.00,
+        price: 130.00,
+        selling_price: 130.00,
+        cost: 95.00,
         reorder_point: 10,
         is_fresh_product: false,
       })
@@ -72,29 +88,31 @@ async function runPostMigrationVerification() {
 
     if (p1Err) throw p1Err;
     testProductId = p1.id;
-    console.log('✅ Product inserted successfully. ID:', p1.id, 'Stock Level:', p1.stock_level);
+    console.log('✅ Product created. ID:', p1.id, 'Stock Level:', p1.stock_level);
     results.push({
-      step: '1. Product Insert (Zero Stock)',
-      expected: 'Product created with stock_level = 0 without trigger error',
+      stepNumber: 1,
+      scenario: 'Product Zero-Stock Insertion',
+      expected: 'Product created with default stock_level = 0 without trigger collision',
       actual: `Created product ${p1.id} with stock_level: ${p1.stock_level}`,
       status: p1.stock_level === 0 ? 'PASS' : 'FAIL',
       evidence: p1,
     });
   } catch (err: any) {
-    console.error('❌ Test 1 failed:', err.message);
+    console.error('❌ Scenario 1 failed:', err.message);
     results.push({
-      step: '1. Product Insert (Zero Stock)',
-      expected: 'Product created successfully',
+      stepNumber: 1,
+      scenario: 'Product Zero-Stock Insertion',
+      expected: 'Product created with stock_level = 0',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
     });
   }
 
-  // --------------------------------------------------------------------------
-  // TEST 2: Product insertion with unauthorized nonzero initial stock
-  // --------------------------------------------------------------------------
-  console.log('\n[2/7] Testing Product insertion with unauthorized nonzero stock...');
+  // ==========================================================================
+  // SCENARIO 2: Unauthorized Nonzero Stock Insertion Rejection
+  // ==========================================================================
+  console.log('\n[2/14] Testing Unauthorized Product stock insertion rejection...');
   try {
     const { data: p2, error: p2Err } = await supabase
       .from('products')
@@ -106,7 +124,7 @@ async function runPostMigrationVerification() {
         price: 50.00,
         selling_price: 50.00,
         cost: 30.00,
-        stock_level: 25,
+        stock_level: 50,
       })
       .select('id')
       .single();
@@ -114,16 +132,18 @@ async function runPostMigrationVerification() {
     if (p2Err) {
       console.log('✅ Nonzero stock insertion properly rejected:', p2Err.message);
       results.push({
-        step: '2. Nonzero Product Insert Rejection',
-        expected: 'Rejected by permission check or trigger guard',
-        actual: `Properly rejected: ${p2Err.message}`,
+        stepNumber: 2,
+        scenario: 'Unauthorized Stock Insertion Rejection',
+        expected: 'Rejected by column privilege or trigger guard',
+        actual: `Properly blocked: ${p2Err.message}`,
         status: 'PASS',
         evidence: p2Err.message,
       });
     } else {
       console.warn('⚠️ Nonzero stock was allowed! ID:', p2?.id);
       results.push({
-        step: '2. Nonzero Product Insert Rejection',
+        stepNumber: 2,
+        scenario: 'Unauthorized Stock Insertion Rejection',
         expected: 'Rejected',
         actual: 'Allowed without RPC',
         status: 'FAIL',
@@ -132,30 +152,30 @@ async function runPostMigrationVerification() {
       if (p2?.id) await supabase.from('products').delete().eq('id', p2.id);
     }
   } catch (err: any) {
-    console.log('✅ Nonzero stock caught by exception:', err.message);
+    console.log('✅ Caught exception:', err.message);
     results.push({
-      step: '2. Nonzero Product Insert Rejection',
+      stepNumber: 2,
+      scenario: 'Unauthorized Stock Insertion Rejection',
       expected: 'Rejected',
-      actual: `Caught exception: ${err.message}`,
+      actual: `Exception: ${err.message}`,
       status: 'PASS',
       evidence: err.message,
     });
   }
 
-  // --------------------------------------------------------------------------
-  // TEST 3: Authorized stock adjustment via RPC
-  // --------------------------------------------------------------------------
-  console.log('\n[3/7] Testing Authorized Stock Adjustment (process_stock_adjustment)...');
+  // ==========================================================================
+  // SCENARIO 3: Authorized Stock Adjustment (process_stock_adjustment RPC)
+  // ==========================================================================
+  console.log('\n[3/14] Testing Authorized Stock Adjustment (process_stock_adjustment)...');
   try {
-    const targetId = testProductId;
-    if (!targetId) throw new Error('No test product available from step 1');
+    if (!testProductId) throw new Error('No test product available from scenario 1');
 
     const { data: adjRes, error: adjErr } = await supabase.rpc('process_stock_adjustment', {
       p_store_id: storeId,
-      p_product_id: targetId,
+      p_product_id: testProductId,
       p_action: 'add',
-      p_quantity: 20,
-      p_notes: 'Post-Migration Test Stock Adjustment',
+      p_quantity: 30,
+      p_notes: 'Gate-Check Restock 30 Units',
       p_idempotency_key: crypto.randomUUID(),
     });
 
@@ -165,41 +185,42 @@ async function runPostMigrationVerification() {
     const { data: updatedProd } = await supabase
       .from('products')
       .select('stock_level')
-      .eq('id', targetId)
+      .eq('id', testProductId)
       .single();
 
-    console.log('✅ Confirmed new stock level:', updatedProd?.stock_level);
+    console.log('✅ Confirmed new stock level (0 + 30):', updatedProd?.stock_level);
     results.push({
-      step: '3. Authorized Stock Inward RPC',
-      expected: 'Stock level updated to 20',
-      actual: `Stock confirmed at ${updatedProd?.stock_level}`,
-      status: updatedProd?.stock_level === 20 ? 'PASS' : 'FAIL',
+      stepNumber: 3,
+      scenario: 'Authorized Stock Adjustment RPC',
+      expected: 'Stock level updated to 30 via SECURITY DEFINER procedure',
+      actual: `Stock level confirmed at ${updatedProd?.stock_level}`,
+      status: updatedProd?.stock_level === 30 ? 'PASS' : 'FAIL',
       evidence: { newStock: updatedProd?.stock_level, adjRes },
     });
   } catch (err: any) {
-    console.error('❌ Test 3 failed:', err.message);
+    console.error('❌ Scenario 3 failed:', err.message);
     results.push({
-      step: '3. Authorized Stock Inward RPC',
-      expected: 'Stock level updated to 20',
+      stepNumber: 3,
+      scenario: 'Authorized Stock Adjustment RPC',
+      expected: 'Stock updated to 30',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
     });
   }
 
-  // --------------------------------------------------------------------------
-  // TEST 4: Authorized POS Sale via RPC
-  // --------------------------------------------------------------------------
-  console.log('\n[4/7] Testing Authorized POS Sale (process_sale)...');
+  // ==========================================================================
+  // SCENARIO 4: Authorized POS Sale & Stock Decrement (process_sale RPC)
+  // ==========================================================================
+  console.log('\n[4/14] Testing Authorized POS Sale & Stock Decrement (process_sale)...');
   try {
-    const targetId = testProductId;
-    if (!targetId) throw new Error('No test product available');
+    if (!testProductId) throw new Error('No test product available');
 
     const { data: saleRes, error: saleErr } = await supabase.rpc('process_sale', {
       p_store_id: storeId,
-      p_product_id: targetId,
-      p_quantity: 3,
-      p_total_price: 360.00,
+      p_product_id: testProductId,
+      p_quantity: 5,
+      p_total_price: 650.00,
       p_channel: 'In-Store',
       p_idempotency_key: crypto.randomUUID(),
     });
@@ -210,39 +231,41 @@ async function runPostMigrationVerification() {
     const { data: postSaleProd } = await supabase
       .from('products')
       .select('stock_level')
-      .eq('id', targetId)
+      .eq('id', testProductId)
       .single();
 
-    console.log('✅ Stock level after sale (20 - 3):', postSaleProd?.stock_level);
+    console.log('✅ Stock level after sale (30 - 5):', postSaleProd?.stock_level);
     results.push({
-      step: '4. Authorized POS Sale RPC',
-      expected: 'Stock level decremented to 17 atomically',
+      stepNumber: 4,
+      scenario: 'Authorized POS Sale & Stock Decrement',
+      expected: 'Stock decremented to 25 atomically in database',
       actual: `Stock confirmed at ${postSaleProd?.stock_level}`,
-      status: postSaleProd?.stock_level === 17 ? 'PASS' : 'FAIL',
+      status: postSaleProd?.stock_level === 25 ? 'PASS' : 'FAIL',
       evidence: { postSaleStock: postSaleProd?.stock_level, saleRes },
     });
   } catch (err: any) {
-    console.error('❌ Test 4 failed:', err.message);
+    console.error('❌ Scenario 4 failed:', err.message);
     results.push({
-      step: '4. Authorized POS Sale RPC',
-      expected: 'Stock decremented to 17',
+      stepNumber: 4,
+      scenario: 'Authorized POS Sale & Stock Decrement',
+      expected: 'Stock decremented to 25',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
     });
   }
 
-  // --------------------------------------------------------------------------
-  // TEST 5: Khata customer insertion with zero initial balance
-  // --------------------------------------------------------------------------
-  console.log('\n[5/7] Testing Khata customer insertion with zero balance...');
+  // ==========================================================================
+  // SCENARIO 5: Khata Zero-Balance Insertion
+  // ==========================================================================
+  console.log('\n[5/14] Testing Khata Zero-Balance Insertion...');
   const testPhone = `98${Date.now().toString().slice(-8)}`;
   try {
     const { data: k1, error: k1Err } = await supabase
       .from('khata_customers')
       .insert({
         store_id: storeId,
-        name: 'Post-Migration Test Customer',
+        name: 'Gate-Check Khata Customer',
         phone: testPhone,
       })
       .select('id, name, phone, balance')
@@ -250,39 +273,40 @@ async function runPostMigrationVerification() {
 
     if (k1Err) throw k1Err;
     testKhataId = k1.id;
-    console.log('✅ Khata customer inserted successfully. ID:', k1.id, 'Balance:', k1.balance);
+    console.log('✅ Khata customer inserted. ID:', k1.id, 'Balance:', k1.balance);
     results.push({
-      step: '5. Khata Customer Insert (Zero Balance)',
-      expected: 'Customer created with balance = 0.00 without trigger error',
+      stepNumber: 5,
+      scenario: 'Khata Zero-Balance Insertion',
+      expected: 'Customer created with default balance = 0.00 without trigger collision',
       actual: `Created customer ${k1.id} with balance: ${k1.balance}`,
       status: Number(k1.balance) === 0 ? 'PASS' : 'FAIL',
       evidence: k1,
     });
   } catch (err: any) {
-    console.error('❌ Test 5 failed:', err.message);
+    console.error('❌ Scenario 5 failed:', err.message);
     results.push({
-      step: '5. Khata Customer Insert (Zero Balance)',
-      expected: 'Customer created with zero balance',
+      stepNumber: 5,
+      scenario: 'Khata Zero-Balance Insertion',
+      expected: 'Customer created with balance = 0',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
     });
   }
 
-  // --------------------------------------------------------------------------
-  // TEST 6: Authorized Khata transaction via RPC
-  // --------------------------------------------------------------------------
-  console.log('\n[6/7] Testing Authorized Khata Transaction (process_khata_transaction)...');
+  // ==========================================================================
+  // SCENARIO 6: Authorized Khata Transaction (process_khata_transaction RPC)
+  // ==========================================================================
+  console.log('\n[6/14] Testing Authorized Khata Transaction (process_khata_transaction)...');
   try {
-    const targetCustId = testKhataId;
-    if (!targetCustId) throw new Error('No test khata customer available');
+    if (!testKhataId) throw new Error('No test khata customer available from scenario 5');
 
     const { data: khataRes, error: khataErr } = await supabase.rpc('process_khata_transaction', {
       p_store_id: storeId,
-      p_customer_id: targetCustId,
-      p_type: 'CREDIT',
-      p_amount: 150.00,
-      p_description: 'Post-Migration Test Udhaar Credit',
+      p_customer_id: testKhataId,
+      p_type: 'credit',
+      p_amount: 250.00,
+      p_reference: 'Gate-Check Udhaar Credit',
       p_idempotency_key: crypto.randomUUID(),
     });
 
@@ -292,153 +316,414 @@ async function runPostMigrationVerification() {
     const { data: updatedCust } = await supabase
       .from('khata_customers')
       .select('balance')
-      .eq('id', targetCustId)
+      .eq('id', testKhataId)
       .single();
 
-    console.log('✅ Confirmed new balance (0 + 150):', updatedCust?.balance);
+    console.log('✅ Confirmed new balance (0 + 250):', updatedCust?.balance);
     results.push({
-      step: '6. Authorized Khata Transaction RPC',
-      expected: 'Customer balance updated to 150.00 via RPC',
+      stepNumber: 6,
+      scenario: 'Authorized Khata Transaction RPC',
+      expected: 'Balance updated to 250.00 via RPC',
       actual: `Balance confirmed at ${updatedCust?.balance}`,
-      status: Number(updatedCust?.balance) === 150 ? 'PASS' : 'FAIL',
+      status: Number(updatedCust?.balance) === 250 ? 'PASS' : 'FAIL',
       evidence: { newBalance: updatedCust?.balance, khataRes },
     });
   } catch (err: any) {
-    console.error('❌ Test 6 failed:', err.message);
+    console.error('❌ Scenario 6 failed:', err.message);
     results.push({
-      step: '6. Authorized Khata Transaction RPC',
-      expected: 'Balance updated to 150.00',
+      stepNumber: 6,
+      scenario: 'Authorized Khata Transaction RPC',
+      expected: 'Balance updated to 250.00',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
     });
   }
 
-  // --------------------------------------------------------------------------
-  // TEST 7: Unauthorized direct balance modification
-  // --------------------------------------------------------------------------
-  console.log('\n[7/7] Testing Unauthorized direct balance modification...');
+  // ==========================================================================
+  // SCENARIO 7: Direct Khata Balance Mutation Rejection
+  // ==========================================================================
+  console.log('\n[7/14] Testing Direct Khata Balance Mutation Rejection...');
   try {
-    const targetCustId = testKhataId;
-    if (!targetCustId) throw new Error('No test khata customer available');
+    if (!testKhataId) throw new Error('No test khata customer available');
 
     const { error: directKhataErr } = await supabase
       .from('khata_customers')
-      .update({ balance: 9999.00 })
-      .eq('id', targetCustId);
+      .update({ balance: 8888.00 })
+      .eq('id', testKhataId);
 
     if (directKhataErr) {
       console.log('✅ Direct balance modification properly rejected:', directKhataErr.message);
       results.push({
-        step: '7. Direct Balance Mutation Rejection',
-        expected: 'Rejected by column privilege revocation or trigger guard',
+        stepNumber: 7,
+        scenario: 'Direct Khata Balance Mutation Rejection',
+        expected: 'Rejected by column privilege or trigger guard',
         actual: `Properly blocked: ${directKhataErr.message}`,
         status: 'PASS',
         evidence: directKhataErr.message,
       });
     } else {
-      const { data: checkCust } = await supabase
-        .from('khata_customers')
-        .select('balance')
-        .eq('id', targetCustId)
-        .single();
-
-      if (Number(checkCust?.balance) === 9999) {
-        console.warn('⚠️ Direct balance modification was permitted!');
-        results.push({
-          step: '7. Direct Balance Mutation Rejection',
-          expected: 'Rejected',
-          actual: 'Permitted without RPC',
-          status: 'FAIL',
-          evidence: checkCust,
-        });
-      } else {
-        console.log('✅ Balance preserved by trigger guard:', checkCust?.balance);
-        results.push({
-          step: '7. Direct Balance Mutation Rejection',
-          expected: 'Integrity preserved',
-          actual: `Preserved at ${checkCust?.balance}`,
-          status: 'PASS',
-          evidence: checkCust,
-        });
-      }
+      results.push({
+        stepNumber: 7,
+        scenario: 'Direct Khata Balance Mutation Rejection',
+        expected: 'Rejected',
+        actual: 'Direct update permitted without RPC',
+        status: 'FAIL',
+        evidence: null,
+      });
     }
   } catch (err: any) {
-    console.log('✅ Direct balance update caught by exception:', err.message);
+    console.log('✅ Caught exception:', err.message);
     results.push({
-      step: '7. Direct Balance Mutation Rejection',
+      stepNumber: 7,
+      scenario: 'Direct Khata Balance Mutation Rejection',
       expected: 'Rejected',
-      actual: `Caught exception: ${err.message}`,
+      actual: `Exception: ${err.message}`,
       status: 'PASS',
       evidence: err.message,
     });
   }
 
-  // --------------------------------------------------------------------------
-  // TEST 8: Loyalty Customer insertion with zero initial points
-  // --------------------------------------------------------------------------
-  console.log('\n[8/8] Testing Loyalty customer insertion with zero points...');
-  let testLoyaltyId: string | null = null;
+  // ==========================================================================
+  // SCENARIO 8: Loyalty Zero-Points Insertion
+  // ==========================================================================
+  console.log('\n[8/14] Testing Loyalty Zero-Points Insertion...');
   const testLoyaltyPhone = `97${Date.now().toString().slice(-8)}`;
   try {
     const { data: l1, error: l1Err } = await supabase
       .from('loyalty_customers')
       .insert({
         store_id: storeId,
-        name: 'Post-Migration Loyalty Customer',
+        name: 'Gate-Check Loyalty Customer',
         phone: testLoyaltyPhone,
       })
-      .select('id, name, points_balance')
+      .select('id, name, phone, points_balance')
       .single();
 
     if (l1Err) throw l1Err;
     testLoyaltyId = l1.id;
-    console.log('✅ Loyalty customer inserted successfully. ID:', l1.id, 'Points:', l1.points_balance);
+    console.log('✅ Loyalty customer inserted. ID:', l1.id, 'Points:', l1.points_balance);
     results.push({
-      step: '8. Loyalty Customer Insert (Zero Points)',
-      expected: 'Customer created with points_balance = 0 without trigger error',
+      stepNumber: 8,
+      scenario: 'Loyalty Zero-Points Insertion',
+      expected: 'Customer created with points_balance = 0 without trigger collision',
       actual: `Created customer ${l1.id} with points: ${l1.points_balance}`,
       status: l1.points_balance === 0 ? 'PASS' : 'FAIL',
       evidence: l1,
     });
   } catch (err: any) {
-    console.error('❌ Test 8 failed:', err.message);
+    console.error('❌ Scenario 8 failed:', err.message);
     results.push({
-      step: '8. Loyalty Customer Insert (Zero Points)',
-      expected: 'Customer created with zero points',
+      stepNumber: 8,
+      scenario: 'Loyalty Zero-Points Insertion',
+      expected: 'Customer created with points = 0',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
     });
   }
 
-  // --------------------------------------------------------------------------
-  // TEARDOWN: Clean up isolated test records
-  // --------------------------------------------------------------------------
-  console.log('\n🧹 Cleaning up isolated test records...');
-  if (testProductId) {
-    await supabase.from('products').delete().eq('id', testProductId);
-    console.log('✅ Deleted test product:', testProductId);
+  // ==========================================================================
+  // SCENARIO 9: Authorized Loyalty Transaction (process_loyalty_transaction RPC)
+  // ==========================================================================
+  console.log('\n[9/14] Testing Authorized Loyalty Transaction (process_loyalty_transaction)...');
+  try {
+    if (!testLoyaltyId) throw new Error('No test loyalty customer available');
+
+    const { data: loyRes, error: loyErr } = await supabase.rpc('process_loyalty_transaction', {
+      p_store_id: storeId,
+      p_customer_id: testLoyaltyId,
+      p_type: 'earn',
+      p_points: 100,
+      p_reference: 'Gate-Check Welcome Bonus',
+      p_idempotency_key: crypto.randomUUID(),
+    });
+
+    if (loyErr) throw loyErr;
+    console.log('✅ Loyalty transaction RPC succeeded.');
+
+    const { data: updatedLoy } = await supabase
+      .from('loyalty_customers')
+      .select('points_balance')
+      .eq('id', testLoyaltyId)
+      .single();
+
+    console.log('✅ Confirmed new points balance (0 + 100):', updatedLoy?.points_balance);
+    results.push({
+      stepNumber: 9,
+      scenario: 'Authorized Loyalty Transaction RPC',
+      expected: 'Points balance updated to 100 via RPC',
+      actual: `Points confirmed at ${updatedLoy?.points_balance}`,
+      status: updatedLoy?.points_balance === 100 ? 'PASS' : 'FAIL',
+      evidence: { newPoints: updatedLoy?.points_balance, loyRes },
+    });
+  } catch (err: any) {
+    console.error('❌ Scenario 9 failed:', err.message);
+    results.push({
+      stepNumber: 9,
+      scenario: 'Authorized Loyalty Transaction RPC',
+      expected: 'Points updated to 100',
+      actual: `Error: ${err.message}`,
+      status: 'FAIL',
+      evidence: err.message,
+    });
   }
-  if (testKhataId) {
-    await supabase.from('khata_customers').delete().eq('id', testKhataId);
-    console.log('✅ Deleted test khata customer:', testKhataId);
+
+  // ==========================================================================
+  // SCENARIO 10: Direct Loyalty Points Mutation Rejection
+  // ==========================================================================
+  console.log('\n[10/14] Testing Direct Loyalty Points Mutation Rejection...');
+  try {
+    if (!testLoyaltyId) throw new Error('No test loyalty customer available');
+
+    const { error: directLoyErr } = await supabase
+      .from('loyalty_customers')
+      .update({ points_balance: 50000 })
+      .eq('id', testLoyaltyId);
+
+    if (directLoyErr) {
+      console.log('✅ Direct points modification properly rejected:', directLoyErr.message);
+      results.push({
+        stepNumber: 10,
+        scenario: 'Direct Loyalty Points Mutation Rejection',
+        expected: 'Rejected by column privilege or trigger guard',
+        actual: `Properly blocked: ${directLoyErr.message}`,
+        status: 'PASS',
+        evidence: directLoyErr.message,
+      });
+    } else {
+      results.push({
+        stepNumber: 10,
+        scenario: 'Direct Loyalty Points Mutation Rejection',
+        expected: 'Rejected',
+        actual: 'Direct update permitted without RPC',
+        status: 'FAIL',
+        evidence: null,
+      });
+    }
+  } catch (err: any) {
+    console.log('✅ Caught exception:', err.message);
+    results.push({
+      stepNumber: 10,
+      scenario: 'Direct Loyalty Points Mutation Rejection',
+      expected: 'Rejected',
+      actual: `Exception: ${err.message}`,
+      status: 'PASS',
+      evidence: err.message,
+    });
   }
-  if (testLoyaltyId) {
-    await supabase.from('loyalty_customers').delete().eq('id', testLoyaltyId);
-    console.log('✅ Deleted test loyalty customer:', testLoyaltyId);
+
+  // ==========================================================================
+  // SCENARIO 11: Purchase Order Item Zero-Received Insertion
+  // ==========================================================================
+  console.log('\n[11/14] Testing Purchase Order Item Zero-Received Insertion...');
+  try {
+    if (!supplierId) throw new Error('No valid supplier found for store');
+    if (!testProductId) throw new Error('No test product available');
+
+    // Create a draft PO
+    const { data: po, error: poErr } = await supabase
+      .from('purchase_orders')
+      .insert({
+        store_id: storeId,
+        supplier_id: supplierId,
+        status: 'SENT',
+      })
+      .select('id, status')
+      .single();
+
+    if (poErr) throw poErr;
+    testPoId = po.id;
+
+    // Insert PO item with received_quantity omitted (defaulting to 0)
+    const { data: poi, error: poiErr } = await supabase
+      .from('purchase_order_items')
+      .insert({
+        purchase_order_id: testPoId,
+        product_id: testProductId,
+        quantity: 50,
+        unit_cost: 95.00,
+      })
+      .select('id, purchase_order_id, quantity, received_quantity')
+      .single();
+
+    if (poiErr) throw poiErr;
+    testPoiId = poi.id;
+    console.log('✅ PO Item inserted. ID:', poi.id, 'Received Qty:', poi.received_quantity);
+    results.push({
+      stepNumber: 11,
+      scenario: 'PO Item Zero-Received Insertion',
+      expected: 'PO item created with received_quantity = 0 without trigger collision',
+      actual: `Created item ${poi.id} with received_quantity: ${poi.received_quantity}`,
+      status: poi.received_quantity === 0 ? 'PASS' : 'FAIL',
+      evidence: poi,
+    });
+  } catch (err: any) {
+    console.error('❌ Scenario 11 failed:', err.message);
+    results.push({
+      stepNumber: 11,
+      scenario: 'PO Item Zero-Received Insertion',
+      expected: 'PO item created with received_quantity = 0',
+      actual: `Error: ${err.message}`,
+      status: 'FAIL',
+      evidence: err.message,
+    });
+  }
+
+  // ==========================================================================
+  // SCENARIO 12: Unauthorized Received-Quantity Mutation Rejection
+  // ==========================================================================
+  console.log('\n[12/14] Testing Unauthorized Received-Quantity Mutation Rejection...');
+  try {
+    if (!testPoiId) throw new Error('No test PO item available');
+
+    const { error: directPoiErr } = await supabase
+      .from('purchase_order_items')
+      .update({ received_quantity: 50 })
+      .eq('id', testPoiId);
+
+    if (directPoiErr) {
+      console.log('✅ Direct received_quantity modification properly rejected:', directPoiErr.message);
+      results.push({
+        stepNumber: 12,
+        scenario: 'Unauthorized Received-Quantity Mutation Rejection',
+        expected: 'Rejected by column privilege or trigger guard',
+        actual: `Properly blocked: ${directPoiErr.message}`,
+        status: 'PASS',
+        evidence: directPoiErr.message,
+      });
+    } else {
+      results.push({
+        stepNumber: 12,
+        scenario: 'Unauthorized Received-Quantity Mutation Rejection',
+        expected: 'Rejected',
+        actual: 'Direct update permitted without RPC',
+        status: 'FAIL',
+        evidence: null,
+      });
+    }
+  } catch (err: any) {
+    console.log('✅ Caught exception:', err.message);
+    results.push({
+      stepNumber: 12,
+      scenario: 'Unauthorized Received-Quantity Mutation Rejection',
+      expected: 'Rejected',
+      actual: `Exception: ${err.message}`,
+      status: 'PASS',
+      evidence: err.message,
+    });
+  }
+
+  // ==========================================================================
+  // SCENARIO 13: Authorized Purchase Order Receiving (receive_purchase_order RPC)
+  // ==========================================================================
+  console.log('\n[13/14] Testing Authorized Purchase Order Receiving (receive_purchase_order)...');
+  try {
+    if (!testPoId || !testPoiId) throw new Error('No test PO/item available from scenario 11');
+
+    const { data: recvRes, error: recvErr } = await supabase.rpc('receive_purchase_order', {
+      p_store_id: storeId,
+      p_po_id: testPoId,
+      p_item_id: testPoiId,
+      p_receive_quantity: 20,
+      p_batch_number: `LOT-${Date.now().toString().slice(-6)}`,
+      p_expiry_date: '2027-12-31',
+      p_idempotency_key: crypto.randomUUID(),
+    });
+
+    if (recvErr) throw recvErr;
+    console.log('✅ receive_purchase_order RPC succeeded:', recvRes);
+
+    const { data: updatedPoi } = await supabase
+      .from('purchase_order_items')
+      .select('received_quantity')
+      .eq('id', testPoiId)
+      .single();
+
+    console.log('✅ Confirmed new received_quantity (0 + 20):', updatedPoi?.received_quantity);
+    results.push({
+      stepNumber: 13,
+      scenario: 'Authorized Purchase Order Receiving RPC',
+      expected: 'PO Item received_quantity updated to 20 via RPC',
+      actual: `Received quantity confirmed at ${updatedPoi?.received_quantity}`,
+      status: updatedPoi?.received_quantity === 20 ? 'PASS' : 'FAIL',
+      evidence: { newReceived: updatedPoi?.received_quantity, recvRes },
+    });
+  } catch (err: any) {
+    console.error('❌ Scenario 13 failed:', err.message);
+    results.push({
+      stepNumber: 13,
+      scenario: 'Authorized Purchase Order Receiving RPC',
+      expected: 'Received quantity updated to 20',
+      actual: `Error: ${err.message}`,
+      status: 'FAIL',
+      evidence: err.message,
+    });
+  }
+
+  // ==========================================================================
+  // SCENARIO 14: Safe Cleanup Verification (Teardown of Test Fixtures)
+  // ==========================================================================
+  console.log('\n[14/14] Verifying Safe Cleanup of Isolated Test Records...');
+  let cleanupSucceeded = true;
+  try {
+    if (testPoiId) {
+      const { error } = await supabase.from('purchase_order_items').delete().eq('id', testPoiId);
+      if (error) cleanupSucceeded = false;
+      console.log('✅ Cleaned up PO item:', testPoiId);
+    }
+    if (testPoId) {
+      const { error } = await supabase.from('purchase_orders').delete().eq('id', testPoId);
+      if (error) cleanupSucceeded = false;
+      console.log('✅ Cleaned up PO:', testPoId);
+    }
+    if (testLoyaltyId) {
+      const { error } = await supabase.from('loyalty_customers').delete().eq('id', testLoyaltyId);
+      if (error) cleanupSucceeded = false;
+      console.log('✅ Cleaned up loyalty customer:', testLoyaltyId);
+    }
+    if (testKhataId) {
+      const { error } = await supabase.from('khata_customers').delete().eq('id', testKhataId);
+      if (error) cleanupSucceeded = false;
+      console.log('✅ Cleaned up khata customer:', testKhataId);
+    }
+    if (testProductId) {
+      const { error } = await supabase.from('products').delete().eq('id', testProductId);
+      if (error) cleanupSucceeded = false;
+      console.log('✅ Cleaned up product:', testProductId);
+    }
+
+    results.push({
+      stepNumber: 14,
+      scenario: 'Safe Cleanup Verification',
+      expected: 'All test fixtures deleted without impacting production business data',
+      actual: cleanupSucceeded ? 'All test fixtures successfully purged' : 'Cleanup encountered partial error',
+      status: cleanupSucceeded ? 'PASS' : 'FAIL',
+      evidence: { testProductId, testKhataId, testLoyaltyId, testPoId, testPoiId },
+    });
+  } catch (err: any) {
+    console.error('❌ Scenario 14 failed:', err.message);
+    results.push({
+      stepNumber: 14,
+      scenario: 'Safe Cleanup Verification',
+      expected: 'All test fixtures cleaned up',
+      actual: `Cleanup error: ${err.message}`,
+      status: 'FAIL',
+      evidence: err.message,
+    });
   }
 
   console.log('\n================================================================');
-  console.log('Execution Summary');
+  console.log('14-Scenario Execution Summary');
   console.log('================================================================');
   console.table(
     results.map((r) => ({
-      Step: r.step,
+      '#': r.stepNumber,
+      Scenario: r.scenario,
       Status: r.status,
-      Actual: r.actual.slice(0, 65),
+      Actual: r.actual.slice(0, 55),
     }))
   );
 }
 
-runPostMigrationVerification().catch(console.error);
+runAll14Scenarios().catch(console.error);

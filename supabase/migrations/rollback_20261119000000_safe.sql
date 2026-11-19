@@ -83,15 +83,4 @@ CREATE TRIGGER trg_guard_poi_received BEFORE INSERT OR UPDATE ON public.purchase
 -- Ensure broken monolithic function is permanently removed
 DROP FUNCTION IF EXISTS public.guard_direct_balance_stock_mutations();
 
--- Reconcile migration record if rolled back
-DO $$
-BEGIN
-    IF EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_schema = 'supabase_migrations' AND table_name = 'schema_migrations'
-    ) THEN
-        DELETE FROM supabase_migrations.schema_migrations WHERE version = '20261119000000';
-    END IF;
-END $$;
-
 COMMIT;
