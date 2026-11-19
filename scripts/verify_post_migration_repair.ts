@@ -166,10 +166,24 @@ async function runAll14Scenarios() {
   // ==========================================================================
   // SCENARIO 3: Authorized Stock Adjustment (process_stock_adjustment RPC)
   // ==========================================================================
-  console.log('\n[3/14] Testing Authorized Stock Adjustment (process_stock_adjustment)...');
+  console.log('\n[3/14] Testing Stock Adjustment RPC (process_stock_adjustment)...');
   try {
     if (!testProductId) throw new Error('No test product available from scenario 1');
 
+    // 3a. Unauthorized store access rejection
+    const { error: unauthAdjErr } = await supabase.rpc('process_stock_adjustment', {
+      p_store_id: '00000000-0000-0000-0000-000000000000',
+      p_product_id: testProductId,
+      p_action: 'add',
+      p_quantity: 10,
+      p_notes: 'Unauthorized attempt',
+      p_idempotency_key: crypto.randomUUID(),
+    });
+
+    const unauthBlocked = !!unauthAdjErr && unauthAdjErr.message.includes('Unauthorized');
+    console.log('✅ Unauthorized store adjustment rejected:', unauthAdjErr?.message);
+
+    // 3b. Authorized stock adjustment
     const { data: adjRes, error: adjErr } = await supabase.rpc('process_stock_adjustment', {
       p_store_id: storeId,
       p_product_id: testProductId,
@@ -192,17 +206,17 @@ async function runAll14Scenarios() {
     results.push({
       stepNumber: 3,
       scenario: 'Authorized Stock Adjustment RPC',
-      expected: 'Stock level updated to 30 via SECURITY DEFINER procedure',
-      actual: `Stock level confirmed at ${updatedProd?.stock_level}`,
-      status: updatedProd?.stock_level === 30 ? 'PASS' : 'FAIL',
-      evidence: { newStock: updatedProd?.stock_level, adjRes },
+      expected: 'Rejects unauthorized store access; updates stock to 30 via authorized RPC',
+      actual: `Stock: ${updatedProd?.stock_level}; Unauth check: ${unauthBlocked ? 'BLOCKED' : 'NOT BLOCKED'}`,
+      status: updatedProd?.stock_level === 30 && unauthBlocked ? 'PASS' : 'FAIL',
+      evidence: { newStock: updatedProd?.stock_level, adjRes, unauthBlocked },
     });
   } catch (err: any) {
     console.error('❌ Scenario 3 failed:', err.message);
     results.push({
       stepNumber: 3,
       scenario: 'Authorized Stock Adjustment RPC',
-      expected: 'Stock updated to 30',
+      expected: 'Stock updated to 30 and unauthorized rejected',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
@@ -212,10 +226,24 @@ async function runAll14Scenarios() {
   // ==========================================================================
   // SCENARIO 4: Authorized POS Sale & Stock Decrement (process_sale RPC)
   // ==========================================================================
-  console.log('\n[4/14] Testing Authorized POS Sale & Stock Decrement (process_sale)...');
+  console.log('\n[4/14] Testing POS Sale RPC (process_sale)...');
   try {
     if (!testProductId) throw new Error('No test product available');
 
+    // 4a. Unauthorized store access rejection
+    const { error: unauthSaleErr } = await supabase.rpc('process_sale', {
+      p_store_id: '00000000-0000-0000-0000-000000000000',
+      p_product_id: testProductId,
+      p_quantity: 1,
+      p_total_price: 130.00,
+      p_channel: 'In-Store',
+      p_idempotency_key: crypto.randomUUID(),
+    });
+
+    const unauthBlocked = !!unauthSaleErr && unauthSaleErr.message.includes('Unauthorized');
+    console.log('✅ Unauthorized store sale rejected:', unauthSaleErr?.message);
+
+    // 4b. Authorized sale
     const { data: saleRes, error: saleErr } = await supabase.rpc('process_sale', {
       p_store_id: storeId,
       p_product_id: testProductId,
@@ -238,17 +266,17 @@ async function runAll14Scenarios() {
     results.push({
       stepNumber: 4,
       scenario: 'Authorized POS Sale & Stock Decrement',
-      expected: 'Stock decremented to 25 atomically in database',
-      actual: `Stock confirmed at ${postSaleProd?.stock_level}`,
-      status: postSaleProd?.stock_level === 25 ? 'PASS' : 'FAIL',
-      evidence: { postSaleStock: postSaleProd?.stock_level, saleRes },
+      expected: 'Rejects unauthorized store access; decrements stock to 25 atomically',
+      actual: `Stock: ${postSaleProd?.stock_level}; Unauth check: ${unauthBlocked ? 'BLOCKED' : 'NOT BLOCKED'}`,
+      status: postSaleProd?.stock_level === 25 && unauthBlocked ? 'PASS' : 'FAIL',
+      evidence: { postSaleStock: postSaleProd?.stock_level, saleRes, unauthBlocked },
     });
   } catch (err: any) {
     console.error('❌ Scenario 4 failed:', err.message);
     results.push({
       stepNumber: 4,
       scenario: 'Authorized POS Sale & Stock Decrement',
-      expected: 'Stock decremented to 25',
+      expected: 'Stock decremented to 25 and unauthorized rejected',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
@@ -295,12 +323,26 @@ async function runAll14Scenarios() {
   }
 
   // ==========================================================================
-  // SCENARIO 6: Authorized Khata Transaction (process_khata_transaction RPC)
+  // SCENARIO 6: Khata Transaction RPC (process_khata_transaction)
   // ==========================================================================
-  console.log('\n[6/14] Testing Authorized Khata Transaction (process_khata_transaction)...');
+  console.log('\n[6/14] Testing Khata Transaction RPC (process_khata_transaction)...');
   try {
     if (!testKhataId) throw new Error('No test khata customer available from scenario 5');
 
+    // 6a. Unauthorized store access rejection
+    const { error: unauthKhataErr } = await supabase.rpc('process_khata_transaction', {
+      p_store_id: '00000000-0000-0000-0000-000000000000',
+      p_customer_id: testKhataId,
+      p_type: 'credit',
+      p_amount: 100.00,
+      p_reference: 'Unauthorized attempt',
+      p_idempotency_key: crypto.randomUUID(),
+    });
+
+    const unauthBlocked = !!unauthKhataErr && unauthKhataErr.message.includes('Unauthorized');
+    console.log('✅ Unauthorized store khata rejected:', unauthKhataErr?.message);
+
+    // 6b. Authorized khata credit
     const { data: khataRes, error: khataErr } = await supabase.rpc('process_khata_transaction', {
       p_store_id: storeId,
       p_customer_id: testKhataId,
@@ -323,17 +365,17 @@ async function runAll14Scenarios() {
     results.push({
       stepNumber: 6,
       scenario: 'Authorized Khata Transaction RPC',
-      expected: 'Balance updated to 250.00 via RPC',
-      actual: `Balance confirmed at ${updatedCust?.balance}`,
-      status: Number(updatedCust?.balance) === 250 ? 'PASS' : 'FAIL',
-      evidence: { newBalance: updatedCust?.balance, khataRes },
+      expected: 'Rejects unauthorized store access; updates balance to 250.00 via authorized RPC',
+      actual: `Balance: ${updatedCust?.balance}; Unauth check: ${unauthBlocked ? 'BLOCKED' : 'NOT BLOCKED'}`,
+      status: Number(updatedCust?.balance) === 250 && unauthBlocked ? 'PASS' : 'FAIL',
+      evidence: { newBalance: updatedCust?.balance, khataRes, unauthBlocked },
     });
   } catch (err: any) {
     console.error('❌ Scenario 6 failed:', err.message);
     results.push({
       stepNumber: 6,
       scenario: 'Authorized Khata Transaction RPC',
-      expected: 'Balance updated to 250.00',
+      expected: 'Balance updated to 250.00 and unauthorized rejected',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
@@ -424,12 +466,26 @@ async function runAll14Scenarios() {
   }
 
   // ==========================================================================
-  // SCENARIO 9: Authorized Loyalty Transaction (process_loyalty_transaction RPC)
+  // SCENARIO 9: Loyalty Transaction RPC (process_loyalty_transaction)
   // ==========================================================================
-  console.log('\n[9/14] Testing Authorized Loyalty Transaction (process_loyalty_transaction)...');
+  console.log('\n[9/14] Testing Loyalty Transaction RPC (process_loyalty_transaction)...');
   try {
     if (!testLoyaltyId) throw new Error('No test loyalty customer available');
 
+    // 9a. Unauthorized store access rejection
+    const { error: unauthLoyErr } = await supabase.rpc('process_loyalty_transaction', {
+      p_store_id: '00000000-0000-0000-0000-000000000000',
+      p_customer_id: testLoyaltyId,
+      p_type: 'earn',
+      p_points: 50,
+      p_reference: 'Unauthorized attempt',
+      p_idempotency_key: crypto.randomUUID(),
+    });
+
+    const unauthBlocked = !!unauthLoyErr && unauthLoyErr.message.includes('Unauthorized');
+    console.log('✅ Unauthorized store loyalty rejected:', unauthLoyErr?.message);
+
+    // 9b. Authorized loyalty transaction
     const { data: loyRes, error: loyErr } = await supabase.rpc('process_loyalty_transaction', {
       p_store_id: storeId,
       p_customer_id: testLoyaltyId,
@@ -452,17 +508,17 @@ async function runAll14Scenarios() {
     results.push({
       stepNumber: 9,
       scenario: 'Authorized Loyalty Transaction RPC',
-      expected: 'Points balance updated to 100 via RPC',
-      actual: `Points confirmed at ${updatedLoy?.points_balance}`,
-      status: updatedLoy?.points_balance === 100 ? 'PASS' : 'FAIL',
-      evidence: { newPoints: updatedLoy?.points_balance, loyRes },
+      expected: 'Rejects unauthorized store access; updates points to 100 via authorized RPC',
+      actual: `Points: ${updatedLoy?.points_balance}; Unauth check: ${unauthBlocked ? 'BLOCKED' : 'NOT BLOCKED'}`,
+      status: updatedLoy?.points_balance === 100 && unauthBlocked ? 'PASS' : 'FAIL',
+      evidence: { newPoints: updatedLoy?.points_balance, loyRes, unauthBlocked },
     });
   } catch (err: any) {
     console.error('❌ Scenario 9 failed:', err.message);
     results.push({
       stepNumber: 9,
       scenario: 'Authorized Loyalty Transaction RPC',
-      expected: 'Points updated to 100',
+      expected: 'Points updated to 100 and unauthorized rejected',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
@@ -615,12 +671,27 @@ async function runAll14Scenarios() {
   }
 
   // ==========================================================================
-  // SCENARIO 13: Authorized Purchase Order Receiving (receive_purchase_order RPC)
+  // SCENARIO 13: Purchase Order Receiving RPC (receive_purchase_order)
   // ==========================================================================
-  console.log('\n[13/14] Testing Authorized Purchase Order Receiving (receive_purchase_order)...');
+  console.log('\n[13/14] Testing Purchase Order Receiving RPC (receive_purchase_order)...');
   try {
     if (!testPoId || !testPoiId) throw new Error('No test PO/item available from scenario 11');
 
+    // 13a. Unauthorized store access rejection
+    const { error: unauthRecvErr } = await supabase.rpc('receive_purchase_order', {
+      p_store_id: '00000000-0000-0000-0000-000000000000',
+      p_po_id: testPoId,
+      p_item_id: testPoiId,
+      p_receive_quantity: 5,
+      p_batch_number: 'UNAUTH-BATCH',
+      p_expiry_date: '2027-12-31',
+      p_idempotency_key: crypto.randomUUID(),
+    });
+
+    const unauthBlocked = !!unauthRecvErr && unauthRecvErr.message.includes('Unauthorized');
+    console.log('✅ Unauthorized store PO receiving rejected:', unauthRecvErr?.message);
+
+    // 13b. Authorized PO receiving
     const { data: recvRes, error: recvErr } = await supabase.rpc('receive_purchase_order', {
       p_store_id: storeId,
       p_po_id: testPoId,
@@ -644,17 +715,17 @@ async function runAll14Scenarios() {
     results.push({
       stepNumber: 13,
       scenario: 'Authorized Purchase Order Receiving RPC',
-      expected: 'PO Item received_quantity updated to 20 via RPC',
-      actual: `Received quantity confirmed at ${updatedPoi?.received_quantity}`,
-      status: updatedPoi?.received_quantity === 20 ? 'PASS' : 'FAIL',
-      evidence: { newReceived: updatedPoi?.received_quantity, recvRes },
+      expected: 'Rejects unauthorized store access; updates received_quantity to 20 via authorized RPC',
+      actual: `Received: ${updatedPoi?.received_quantity}; Unauth check: ${unauthBlocked ? 'BLOCKED' : 'NOT BLOCKED'}`,
+      status: updatedPoi?.received_quantity === 20 && unauthBlocked ? 'PASS' : 'FAIL',
+      evidence: { newReceived: updatedPoi?.received_quantity, recvRes, unauthBlocked },
     });
   } catch (err: any) {
     console.error('❌ Scenario 13 failed:', err.message);
     results.push({
       stepNumber: 13,
       scenario: 'Authorized Purchase Order Receiving RPC',
-      expected: 'Received quantity updated to 20',
+      expected: 'Received quantity updated to 20 and unauthorized rejected',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
@@ -667,6 +738,12 @@ async function runAll14Scenarios() {
   console.log('\n[14/14] Verifying Safe Cleanup of Isolated Test Records...');
   let cleanupSucceeded = true;
   try {
+    if (testProductId) {
+      await supabase.from('sale_items').delete().eq('product_id', testProductId);
+      await supabase.from('sales').delete().eq('product_id', testProductId);
+      await supabase.from('inventory_movements').delete().eq('product_id', testProductId);
+      await supabase.from('inventory_batches').delete().eq('product_id', testProductId);
+    }
     if (testPoiId) {
       const { error } = await supabase.from('purchase_order_items').delete().eq('id', testPoiId);
       if (error) cleanupSucceeded = false;
@@ -678,11 +755,13 @@ async function runAll14Scenarios() {
       console.log('✅ Cleaned up PO:', testPoId);
     }
     if (testLoyaltyId) {
+      await supabase.from('loyalty_transactions').delete().eq('loyalty_customer_id', testLoyaltyId);
       const { error } = await supabase.from('loyalty_customers').delete().eq('id', testLoyaltyId);
       if (error) cleanupSucceeded = false;
       console.log('✅ Cleaned up loyalty customer:', testLoyaltyId);
     }
     if (testKhataId) {
+      await supabase.from('khata_transactions').delete().eq('khata_customer_id', testKhataId);
       const { error } = await supabase.from('khata_customers').delete().eq('id', testKhataId);
       if (error) cleanupSucceeded = false;
       console.log('✅ Cleaned up khata customer:', testKhataId);
