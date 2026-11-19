@@ -131,4 +131,17 @@ CREATE TRIGGER trg_guard_poi_received
 -- 6. Clean up obsolete monolithic function
 DROP FUNCTION IF EXISTS public.guard_direct_balance_stock_mutations();
 
+-- 7. Reconcile Supabase CLI migration history if schema_migrations table exists
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = 'supabase_migrations' AND table_name = 'schema_migrations'
+    ) THEN
+        INSERT INTO supabase_migrations.schema_migrations (version, statements, name)
+        VALUES ('20261119000000', ARRAY['-- fix trigger guard record types'], 'fix_trigger_guard_record_types')
+        ON CONFLICT (version) DO NOTHING;
+    END IF;
+END $$;
+
 COMMIT;

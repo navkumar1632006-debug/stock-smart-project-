@@ -496,24 +496,40 @@ BEGIN
     -- SECURITY DEFINER procedures execute with the function owner's role (e.g. postgres).
     IF current_user IN ('authenticated', 'anon') THEN
         IF TG_OP = 'INSERT' THEN
-            IF TG_TABLE_NAME = 'products' AND NEW.stock_level IS DISTINCT FROM 0 THEN
-                RAISE EXCEPTION 'Security violation: initial stock_level on products must be 0. Use process_stock_adjustment or receive_purchase_order.';
-            ELSIF TG_TABLE_NAME = 'khata_customers' AND NEW.balance IS DISTINCT FROM 0 THEN
-                RAISE EXCEPTION 'Security violation: initial balance on khata_customers must be 0. Use process_khata_transaction.';
-            ELSIF TG_TABLE_NAME = 'loyalty_customers' AND NEW.points_balance IS DISTINCT FROM 0 THEN
-                RAISE EXCEPTION 'Security violation: initial points_balance on loyalty_customers must be 0. Use process_loyalty_transaction.';
-            ELSIF TG_TABLE_NAME = 'purchase_order_items' AND NEW.received_quantity IS DISTINCT FROM 0 THEN
-                RAISE EXCEPTION 'Security violation: initial received_quantity on purchase_order_items must be 0. Use receive_purchase_order.';
+            IF TG_TABLE_NAME = 'products' THEN
+                IF NEW.stock_level IS DISTINCT FROM 0 THEN
+                    RAISE EXCEPTION 'Security violation: initial stock_level on products must be 0. Use process_stock_adjustment or receive_purchase_order.';
+                END IF;
+            ELSIF TG_TABLE_NAME = 'khata_customers' THEN
+                IF NEW.balance IS DISTINCT FROM 0 THEN
+                    RAISE EXCEPTION 'Security violation: initial balance on khata_customers must be 0. Use process_khata_transaction.';
+                END IF;
+            ELSIF TG_TABLE_NAME = 'loyalty_customers' THEN
+                IF NEW.points_balance IS DISTINCT FROM 0 THEN
+                    RAISE EXCEPTION 'Security violation: initial points_balance on loyalty_customers must be 0. Use process_loyalty_transaction.';
+                END IF;
+            ELSIF TG_TABLE_NAME = 'purchase_order_items' THEN
+                IF NEW.received_quantity IS DISTINCT FROM 0 THEN
+                    RAISE EXCEPTION 'Security violation: initial received_quantity on purchase_order_items must be 0. Use receive_purchase_order.';
+                END IF;
             END IF;
         ELSIF TG_OP = 'UPDATE' THEN
-            IF TG_TABLE_NAME = 'products' AND NEW.stock_level IS DISTINCT FROM OLD.stock_level THEN
-                RAISE EXCEPTION 'Security violation: products.stock_level cannot be updated directly. Use process_sale, process_stock_adjustment, or receive_purchase_order.';
-            ELSIF TG_TABLE_NAME = 'khata_customers' AND NEW.balance IS DISTINCT FROM OLD.balance THEN
-                RAISE EXCEPTION 'Security violation: khata_customers.balance cannot be updated directly. Use process_khata_transaction.';
-            ELSIF TG_TABLE_NAME = 'loyalty_customers' AND NEW.points_balance IS DISTINCT FROM OLD.points_balance THEN
-                RAISE EXCEPTION 'Security violation: loyalty_customers.points_balance cannot be updated directly. Use process_loyalty_transaction.';
-            ELSIF TG_TABLE_NAME = 'purchase_order_items' AND NEW.received_quantity IS DISTINCT FROM OLD.received_quantity THEN
-                RAISE EXCEPTION 'Security violation: purchase_order_items.received_quantity cannot be updated directly. Use receive_purchase_order.';
+            IF TG_TABLE_NAME = 'products' THEN
+                IF NEW.stock_level IS DISTINCT FROM OLD.stock_level THEN
+                    RAISE EXCEPTION 'Security violation: products.stock_level cannot be updated directly. Use process_sale, process_stock_adjustment, or receive_purchase_order.';
+                END IF;
+            ELSIF TG_TABLE_NAME = 'khata_customers' THEN
+                IF NEW.balance IS DISTINCT FROM OLD.balance THEN
+                    RAISE EXCEPTION 'Security violation: khata_customers.balance cannot be updated directly. Use process_khata_transaction.';
+                END IF;
+            ELSIF TG_TABLE_NAME = 'loyalty_customers' THEN
+                IF NEW.points_balance IS DISTINCT FROM OLD.points_balance THEN
+                    RAISE EXCEPTION 'Security violation: loyalty_customers.points_balance cannot be updated directly. Use process_loyalty_transaction.';
+                END IF;
+            ELSIF TG_TABLE_NAME = 'purchase_order_items' THEN
+                IF NEW.received_quantity IS DISTINCT FROM OLD.received_quantity THEN
+                    RAISE EXCEPTION 'Security violation: purchase_order_items.received_quantity cannot be updated directly. Use receive_purchase_order.';
+                END IF;
             END IF;
         END IF;
     END IF;

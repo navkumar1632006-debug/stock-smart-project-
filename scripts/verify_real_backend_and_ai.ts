@@ -159,42 +159,62 @@ async function runAcceptanceSuite() {
 
   // 4. Authorized RPC Stock Adjustment (Inward Stock)
   console.log('\n[4/8] Testing Authorized RPC: process_stock_adjustment...');
+  let targetProductId = insertedProductId;
+  let originalStock = 0;
+  let isExistingProduct = false;
+
   try {
-    if (!insertedProductId) throw new Error('No product ID to adjust');
+    if (!targetProductId) {
+      // Fallback to testing on first catalog product
+      const { data: fallbackProd } = await supabase
+        .from('products')
+        .select('id, name, stock_level')
+        .limit(1)
+        .single();
+
+      if (!fallbackProd) throw new Error('No catalog product found for RPC test');
+      targetProductId = fallbackProd.id;
+      originalStock = fallbackProd.stock_level || 0;
+      isExistingProduct = true;
+      console.log(`ℹ️  Testing RPCs on existing catalog product: ${fallbackProd.name} (ID: ${targetProductId}, Initial Stock: ${originalStock})`);
+    }
 
     const { data: rpcRes, error: rpcErr } = await supabase.rpc('process_stock_adjustment', {
-      p_product_id: insertedProductId,
-      p_type: 'add',
-      p_quantity: 25,
-      p_reason: 'RC1 Acceptance Test Inward Stock',
+      p_store_id: storeId,
+      p_product_id: targetProductId,
+      p_action: 'add',
+      p_quantity: 5,
+      p_notes: 'RC1 Acceptance Test Inward Stock',
+      p_idempotency_key: crypto.randomUUID(),
     });
 
     if (rpcErr) throw rpcErr;
-    console.log('âœ… Stock adjustment RPC executed successfully.');
+    console.log('✅ Stock adjustment RPC executed successfully.');
 
-    // Verify stock_level is now 25
+    // Verify stock_level is now originalStock + 5
     const { data: updatedProd } = await supabase
       .from('products')
       .select('stock_level')
-      .eq('id', insertedProductId)
+      .eq('id', targetProductId)
       .single();
 
-    console.log('âœ… Updated stock level in database:', updatedProd?.stock_level);
+    const expectedStock = isExistingProduct ? originalStock + 5 : 25;
+    console.log('✅ Updated stock level in database:', updatedProd?.stock_level, `(Expected: ${expectedStock})`);
 
     results.push({
       id: 'RC1-RPC-01',
       scenario: 'Authorized Stock Inward RPC',
-      expected: 'Stock level updated to 25 and audit movement logged',
+      expected: `Stock level updated to ${expectedStock} and audit movement logged`,
       actual: `New stock level confirmed: ${updatedProd?.stock_level}`,
-      status: updatedProd?.stock_level === 25 ? 'PASS' : 'FAIL',
-      evidence: { newStock: updatedProd?.stock_level, rpcResponse: rpcRes },
+      status: updatedProd?.stock_level === expectedStock ? 'PASS' : 'FAIL',
+      evidence: { targetProductId, originalStock, newStock: updatedProd?.stock_level, rpcResponse: rpcRes },
     });
   } catch (err: any) {
-    console.error('â Œ Stock adjustment RPC failed:', err.message);
+    console.error('❌ Stock adjustment RPC failed:', err.message);
     results.push({
       id: 'RC1-RPC-01',
       scenario: 'Authorized Stock Inward RPC',
-      expected: 'Stock level adjusted to 25',
+      expected: 'Stock level adjusted successfully',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
@@ -204,41 +224,63 @@ async function runAcceptanceSuite() {
   // 5. Authorized RPC POS Sale Execution
   console.log('\n[5/8] Testing Authorized RPC: process_sale (POS Transaction)...');
   try {
-    if (!insertedProductId) throw new Error('No product ID to sell');
+    if (!targetProductId) throw new Error('No target product ID for sale test');
 
     const { data: saleRes, error: saleErr } = await supabase.rpc('process_sale', {
-      p_product_id: insertedProductId,
-      p_quantity: 3,
-      p_total_amount: 330.0,
+      p_store_id: storeId,
+      p_product_id: targetProductId,
+      p_quantity: 1,
+      p_total_price: 112.54,
       p_channel: 'In-Store',
+      p_idempotency_key: crypto.randomUUID(),
     });
 
     if (saleErr) throw saleErr;
-    console.log('âœ… POS Sale RPC executed successfully.');
+    console.log('✅ POS Sale RPC executed successfully.');
 
-    // Verify stock_level is now 22 (25 - 3)
+    // Verify stock_level is now previous - 1
     const { data: postSaleProd } = await supabase
       .from('products')
       .select('stock_level')
-      .eq('id', insertedProductId)
+      .eq('id', targetProductId)
       .single();
 
-    console.log('âœ… Stock level after POS sale:', postSaleProd?.stock_level);
+    const expectedPostSaleStock = isExistingProduct ? originalStock + 4 : 22;
+    console.log('✅ Stock level after POS sale:', postSaleProd?.stock_level, `(Expected: ${expectedPostSaleStock})`);
 
     results.push({
       id: 'RC1-RPC-02',
       scenario: 'POS Sale Execution via RPC',
-      expected: 'Stock level decremented from 25 to 22 atomically',
+      expected: `Stock level decremented to ${expectedPostSaleStock} atomically`,
       actual: `New stock level: ${postSaleProd?.stock_level}`,
-      status: postSaleProd?.stock_level === 22 ? 'PASS' : 'FAIL',
+      status: postSaleProd?.stock_level === expectedPostSaleStock ? 'PASS' : 'FAIL',
       evidence: { postSaleStock: postSaleProd?.stock_level, saleResponse: saleRes },
     });
+
+    // Revert existing product stock back to originalStock
+    if (isExistingProduct) {
+      console.log('ℹ️  Restoring original stock for catalog product...');
+      await supabase.rpc('process_stock_adjustment', {
+        p_store_id: storeId,
+        p_product_id: targetProductId,
+        p_action: 'deduct',
+        p_quantity: 4,
+        p_notes: 'RC1 Acceptance Test Rollback Adjustment',
+        p_idempotency_key: crypto.randomUUID(),
+      });
+      const { data: restoredProd } = await supabase
+        .from('products')
+        .select('stock_level')
+        .eq('id', targetProductId)
+        .single();
+      console.log('✅ Restored catalog stock level:', restoredProd?.stock_level);
+    }
   } catch (err: any) {
-    console.error('â Œ POS sale RPC failed:', err.message);
+    console.error('❌ POS sale RPC failed:', err.message);
     results.push({
       id: 'RC1-RPC-02',
       scenario: 'POS Sale Execution via RPC',
-      expected: 'Stock decremented to 22',
+      expected: 'Stock decremented atomically',
       actual: `Error: ${err.message}`,
       status: 'FAIL',
       evidence: err.message,
@@ -248,20 +290,21 @@ async function runAcceptanceSuite() {
   // 6. Direct Write Security Check (Trigger Guard Protection)
   console.log('\n[6/8] Testing Direct Write Mutation Guard (Security Policy Enforcement)...');
   try {
-    if (!insertedProductId) throw new Error('No product ID');
+    const testSecTargetId = targetProductId;
+    if (!testSecTargetId) throw new Error('No product ID available for security test');
 
     // Attempt direct write bypass to products.stock_level
     const { error: directWriteErr } = await supabase
       .from('products')
       .update({ stock_level: 9999 })
-      .eq('id', insertedProductId);
+      .eq('id', testSecTargetId);
 
     if (directWriteErr) {
-      console.log('âœ… Direct write successfully rejected by security trigger:', directWriteErr.message);
+      console.log('✅ Direct write successfully rejected by security policy/trigger:', directWriteErr.message);
       results.push({
         id: 'RC1-SEC-01',
         scenario: 'Direct Stock Mutation Rejection',
-        expected: 'Direct updates to products.stock_level blocked by trigger',
+        expected: 'Direct updates to products.stock_level blocked by security layer',
         actual: `Blocked with message: ${directWriteErr.message}`,
         status: 'PASS',
         evidence: directWriteErr.message,
@@ -271,11 +314,11 @@ async function runAcceptanceSuite() {
       const { data: checkProd } = await supabase
         .from('products')
         .select('stock_level')
-        .eq('id', insertedProductId)
+        .eq('id', testSecTargetId)
         .single();
 
       if (checkProd?.stock_level === 9999) {
-        console.warn('âš  Direct write was allowed on stock_level without RPC.');
+        console.warn('⚠️ Direct write was allowed on stock_level without RPC.');
         results.push({
           id: 'RC1-SEC-01',
           scenario: 'Direct Stock Mutation Rejection',
@@ -285,7 +328,7 @@ async function runAcceptanceSuite() {
           evidence: { stock: checkProd?.stock_level },
         });
       } else {
-        console.log('âœ… Trigger preserved integrity. Stock remains:', checkProd?.stock_level);
+        console.log('✅ Integrity preserved. Stock remains:', checkProd?.stock_level);
         results.push({
           id: 'RC1-SEC-01',
           scenario: 'Direct Stock Mutation Rejection',
@@ -297,7 +340,7 @@ async function runAcceptanceSuite() {
       }
     }
   } catch (err: any) {
-    console.log('âœ… Direct write caught with exception:', err.message);
+    console.log('✅ Direct write caught with exception:', err.message);
     results.push({
       id: 'RC1-SEC-01',
       scenario: 'Direct Stock Mutation Rejection',

@@ -375,6 +375,44 @@ async function runPostMigrationVerification() {
   }
 
   // --------------------------------------------------------------------------
+  // TEST 8: Loyalty Customer insertion with zero initial points
+  // --------------------------------------------------------------------------
+  console.log('\n[8/8] Testing Loyalty customer insertion with zero points...');
+  let testLoyaltyId: string | null = null;
+  const testLoyaltyPhone = `97${Date.now().toString().slice(-8)}`;
+  try {
+    const { data: l1, error: l1Err } = await supabase
+      .from('loyalty_customers')
+      .insert({
+        store_id: storeId,
+        name: 'Post-Migration Loyalty Customer',
+        phone: testLoyaltyPhone,
+      })
+      .select('id, name, points_balance')
+      .single();
+
+    if (l1Err) throw l1Err;
+    testLoyaltyId = l1.id;
+    console.log('✅ Loyalty customer inserted successfully. ID:', l1.id, 'Points:', l1.points_balance);
+    results.push({
+      step: '8. Loyalty Customer Insert (Zero Points)',
+      expected: 'Customer created with points_balance = 0 without trigger error',
+      actual: `Created customer ${l1.id} with points: ${l1.points_balance}`,
+      status: l1.points_balance === 0 ? 'PASS' : 'FAIL',
+      evidence: l1,
+    });
+  } catch (err: any) {
+    console.error('❌ Test 8 failed:', err.message);
+    results.push({
+      step: '8. Loyalty Customer Insert (Zero Points)',
+      expected: 'Customer created with zero points',
+      actual: `Error: ${err.message}`,
+      status: 'FAIL',
+      evidence: err.message,
+    });
+  }
+
+  // --------------------------------------------------------------------------
   // TEARDOWN: Clean up isolated test records
   // --------------------------------------------------------------------------
   console.log('\n🧹 Cleaning up isolated test records...');
@@ -385,6 +423,10 @@ async function runPostMigrationVerification() {
   if (testKhataId) {
     await supabase.from('khata_customers').delete().eq('id', testKhataId);
     console.log('✅ Deleted test khata customer:', testKhataId);
+  }
+  if (testLoyaltyId) {
+    await supabase.from('loyalty_customers').delete().eq('id', testLoyaltyId);
+    console.log('✅ Deleted test loyalty customer:', testLoyaltyId);
   }
 
   console.log('\n================================================================');
