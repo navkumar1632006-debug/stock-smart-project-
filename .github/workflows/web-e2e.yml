@@ -43,11 +43,6 @@ jobs:
         working-directory: ./testing/web-e2e
         run: npm ci || npm install
 
-      - name: Setup Chrome & ChromeDriver
-        uses: browser-actions/setup-chrome@v1
-        with:
-          chrome-version: stable
-
       - name: Start Background Web Application
         run: |
           TARGET_URL="${{ github.event.inputs.test_base_url || 'http://localhost:3000' }}"

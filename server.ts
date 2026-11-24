@@ -21,7 +21,16 @@ async function startServer() {
     allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control']
   }));
 
-  // Security: Rate limiting to prevent brute-force and DDoS
+  // Performance: Enable response compression for JSON endpoints and static files
+  app.use(compression());
+  app.use(express.json({ limit: '10mb' })); // Security: Limit JSON payload size
+
+  // Healthcheck endpoint (excluded from rate limiter for probes and baseline load benchmarks)
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', architecture: 'supabase' });
+  });
+
+  // Security: Rate limiting to prevent brute-force and DDoS on API business routes
   const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 200, // Limit each IP to 200 requests per windowMs
@@ -31,16 +40,8 @@ async function startServer() {
     message: { error: 'Too many requests, please try again later.' }
   });
 
-  // Apply rate limiter specifically to API routes
+  // Apply rate limiter specifically to API business routes
   app.use('/api/', apiLimiter);
-
-  // Performance: Enable response compression for JSON endpoints and static files
-  app.use(compression());
-  app.use(express.json({ limit: '10mb' })); // Security: Limit JSON payload size
-
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', architecture: 'supabase' });
-  });
 
   // Note: All mock data endpoints have been removed as part of Phase 3C.
   // The frontend will now communicate directly with Supabase, or through dedicated ML microservices.

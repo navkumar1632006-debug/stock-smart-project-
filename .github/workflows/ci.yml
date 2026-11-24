@@ -28,6 +28,9 @@ jobs:
         run: npm ci
 
       - name: Run Unit Tests (Vitest)
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://demo.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy_anon' }}
         run: npx vitest run
 
       - name: Typecheck Root (Web / Backend)
