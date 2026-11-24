@@ -1,16 +1,69 @@
-﻿node_modules/
-build/
-dist/
+﻿# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Testing and Coverage
 coverage/
-.DS_Store
-*.log
-.env*
+playwright-report/
+test-results/
+
+# Production Builds
+dist/
+build/
+.vercel/
+.turbo/
+
+# Environment and Secrets (STRICT SECURITY GUARD)
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+*.env
+*.env.*
 !.env.example
+!**/.env.example
+
+# Android & Mobile Native Build Artifacts
+.gradle/
+**/android/.gradle/
+**/android/build/
+**/android/app/build/
+**/android/app/.cxx/
+**/android/local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Keystores & Signing Keys (Except default debug keystore)
 *.jks
 *.keystore
-playwright-report/
+!**/debug.keystore
 
+# Expo & Mobile Caches
+.expo/
+.expo-shared/
+
+# Logs and Runtime Caches
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.temp/
+supabase/.temp/
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Scratch files
 scratch.txt
-*.xlsx
-
-
