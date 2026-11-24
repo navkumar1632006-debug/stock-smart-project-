@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StockSmart AI — Appium Android Automation Report</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --pass: #22c55e;
+      --fail: #ef4444;
+      --accent: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 2rem; line-height: 1.5; }
+    .header { margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; }
+    .header h1 { font-size: 1.8rem; font-weight: 700; color: #fff; }
+    .header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .metric-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+    .metric-title { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); }
+    .metric-val { font-size: 2rem; font-weight: 700; margin-top: 0.25rem; }
+    .val-pass { color: var(--pass); }
+    .val-fail { color: var(--fail); }
+    .val-accent { color: var(--accent); }
+    table { width: 100%; border-collapse: collapse; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; font-size: 0.875rem; }
+    th { background: #111827; text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .status-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
+    .status-pass { background: rgba(34, 197, 94, 0.2); color: var(--pass); }
+    .status-fail { background: rgba(239, 68, 68, 0.2); color: var(--fail); }
+    .screen-pill { background: rgba(59, 130, 246, 0.15); color: #93c5fd; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; }
+    .font-mono { font-family: monospace; }
+    .error-cell { max-width: 280px; word-break: break-word; color: #fca5a5; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>StockSmart AI — Appium Android Automation Report</h1>
+    <p>Target App: com.stocksmart.app | Automation: UiAutomator2 | Generated: Tue, 24 Nov 2026 18:33:45 GMT</p>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-title">Total Tests</div>
+      <div class="metric-val">6</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Passed</div>
+      <div class="metric-val val-pass">6</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Failed</div>
+      <div class="metric-val val-fail">0</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Pass Rate</div>
+      <div class="metric-val val-pass">100.0%</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Duration</div>
+      <div class="metric-val val-accent">12.60s</div>
+    </div>
+  </div>
+
+  <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem;">Execution Details</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Test ID</th>
+        <th>Screen</th>
+        <th>Test Scenario</th>
+        <th>Expected Result</th>
+        <th>Actual Result</th>
+        <th>Status</th>
+        <th>Duration</th>
+        <th>Error Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td class="font-mono">MOB-001</td>
+        <td><span class="screen-pill">Root / Splash</span></td>
+        <td><strong>Application cold launch and Android package identity verification</strong></td>
+        <td>App launches to foreground, package matches com.stocksmart.app</td>
+        <td>App launched and verified package com.stocksmart.app</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>3200 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">MOB-002</td>
+        <td><span class="screen-pill">DashboardScreen</span></td>
+        <td><strong>Verify bottom navigation tabs mount on home dashboard</strong></td>
+        <td>POS, Inventory, AI Demand, and More tabs are visible and clickable</td>
+        <td>Bottom navigation tabs rendered correctly</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>1450 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">MOB-003</td>
+        <td><span class="screen-pill">BarcodeScannerScreen</span></td>
+        <td><strong>Verify camera scanner overlay and permission handling</strong></td>
+        <td>Camera viewfinder renders with scanning reticle and flash toggle</td>
+        <td>Camera viewfinder rendered and reticle visible</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>2100 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">MOB-004</td>
+        <td><span class="screen-pill">POSScreen</span></td>
+        <td><strong>Item manual barcode lookup and cart addition</strong></td>
+        <td>SKU entry adds item to mobile checkout cart with recalculated total</td>
+        <td>Item added and total updated accurately</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>1800 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">MOB-005</td>
+        <td><span class="screen-pill">InventoryScreen</span></td>
+        <td><strong>Browse local inventory catalog and verify stock badges</strong></td>
+        <td>Products display with stock count, reorder alerts, and expiry flags</td>
+        <td>Catalog loaded with valid stock levels</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>1650 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">MOB-006</td>
+        <td><span class="screen-pill">AIDemandScreen</span></td>
+        <td><strong>Load AI demand forecast curve and seasonal trends</strong></td>
+        <td>Demand curve graph renders with predicted Kirana reorder quantities</td>
+        <td>Forecast graph rendered successfully</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>2400 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+    </tbody>
+  </table>
+</body>
+</html>

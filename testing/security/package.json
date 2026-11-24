@@ -1,0 +1,13 @@
+{
+  "name": "stocksmart-security-audit",
+  "version": "1.0.0",
+  "description": "Comprehensive Security Review and SAST Auditing for StockSmart AI",
+  "main": "run_security_audit.js",
+  "type": "module",
+  "scripts": {
+    "audit": "node run_security_audit.js"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  }
+}

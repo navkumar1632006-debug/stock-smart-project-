@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StockSmart AI — API Load Test Report</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --pass: #22c55e;
+      --fail: #ef4444;
+      --accent: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 2rem; line-height: 1.5; }
+    .header { margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; }
+    .header h1 { font-size: 1.8rem; font-weight: 700; color: #fff; }
+    .header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .metric-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+    .metric-title { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); }
+    .metric-val { font-size: 2rem; font-weight: 700; margin-top: 0.25rem; }
+    .val-pass { color: var(--pass); }
+    .val-fail { color: var(--fail); }
+    .val-accent { color: var(--accent); }
+    table { width: 100%; border-collapse: collapse; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; font-size: 0.875rem; }
+    th { background: #111827; text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .status-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
+    .status-pass { background: rgba(34, 197, 94, 0.2); color: var(--pass); }
+    .status-fail { background: rgba(239, 68, 68, 0.2); color: var(--fail); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>StockSmart AI — API Load Test Report (k6)</h1>
+    <p>Target: http://localhost:3000 | VUs: 100 | Duration: 1m | Generated: Tue, 24 Nov 2026 18:33:05 GMT</p>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-title">Total Requests</div>
+      <div class="metric-val">0</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Throughput</div>
+      <div class="metric-val val-accent">0.0 req/s</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Avg Latency</div>
+      <div class="metric-val">0.0 ms</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">P95 Latency</div>
+      <div class="metric-val val-pass">0.0 ms</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Failure Rate</div>
+      <div class="metric-val val-pass">0.00%</div>
+    </div>
+  </div>
+
+  <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem;">Quality Gate Thresholds</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Threshold</th>
+        <th>Configured SLA</th>
+        <th>Observed Value</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>http_req_failed</strong></td>
+        <td>rate &lt; 0.05 (5%)</td>
+        <td>0.00%</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+      </tr>
+      <tr>
+        <td><strong>http_req_duration</strong></td>
+        <td>p(95) &lt; 1500 ms</td>
+        <td>0.0 ms</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StockSmart AI — Selenium E2E Automation Report</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --pass: #22c55e;
+      --fail: #ef4444;
+      --warn: #f59e0b;
+      --accent: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 2rem; line-height: 1.5; }
+    .header { margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; }
+    .header h1 { font-size: 1.8rem; font-weight: 700; color: #fff; }
+    .header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .metric-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+    .metric-title { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; }
+    .metric-val { font-size: 2rem; font-weight: 700; margin-top: 0.25rem; }
+    .val-pass { color: var(--pass); }
+    .val-fail { color: var(--fail); }
+    .val-accent { color: var(--accent); }
+    .progress-bar { background: var(--border); border-radius: 999px; height: 10px; overflow: hidden; margin-bottom: 2rem; display: flex; }
+    .progress-pass { background: var(--pass); height: 100%; }
+    .progress-fail { background: var(--fail); height: 100%; }
+    .modules-section { margin-bottom: 2rem; }
+    .modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; margin-top: 0.75rem; }
+    .module-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.85rem 1rem; }
+    .module-title { font-weight: 600; font-size: 0.9rem; }
+    .module-stats { display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted); }
+    .rate-badge { padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
+    .rate-good { background: rgba(34, 197, 94, 0.15); color: var(--pass); }
+    .rate-warn { background: rgba(239, 68, 68, 0.15); color: var(--fail); }
+    table { width: 100%; border-collapse: collapse; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; font-size: 0.875rem; }
+    th { background: #111827; text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    .status-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
+    .status-pass { background: rgba(34, 197, 94, 0.2); color: var(--pass); }
+    .status-fail { background: rgba(239, 68, 68, 0.2); color: var(--fail); }
+    .status-skip { background: rgba(245, 158, 11, 0.2); color: var(--warn); }
+    .category-pill { background: rgba(59, 130, 246, 0.15); color: #93c5fd; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; }
+    .font-mono { font-family: monospace; }
+    .error-cell { max-width: 280px; word-break: break-word; color: #fca5a5; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>StockSmart AI — Selenium E2E Automation Report</h1>
+    <p>Target: http://localhost:3000 | Browser: CHROME (Headless=false) | Generated: Tue, 24 Nov 2026 18:34:08 GMT</p>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-title">Total Tests</div>
+      <div class="metric-val">16</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Passed</div>
+      <div class="metric-val val-pass">16</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Failed</div>
+      <div class="metric-val val-fail">0</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Pass Rate</div>
+      <div class="metric-val val-pass">100.0%</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Duration</div>
+      <div class="metric-val val-accent">8.95s</div>
+    </div>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-pass" style="width: 100.0%"></div>
+    <div class="progress-fail" style="width: 0%"></div>
+  </div>
+
+  <div class="modules-section">
+    <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">Module Breakdown</h2>
+    <div class="modules-grid">
+      
+      <div class="module-card">
+        <div class="module-title">Auth</div>
+        <div class="module-stats">
+          <span>6/6 Passed</span>
+          <span class="rate-badge rate-good">100%</span>
+        </div>
+      </div>
+    
+      <div class="module-card">
+        <div class="module-title">Dashboard</div>
+        <div class="module-stats">
+          <span>3/3 Passed</span>
+          <span class="rate-badge rate-good">100%</span>
+        </div>
+      </div>
+    
+      <div class="module-card">
+        <div class="module-title">Inventory</div>
+        <div class="module-stats">
+          <span>2/2 Passed</span>
+          <span class="rate-badge rate-good">100%</span>
+        </div>
+      </div>
+    
+      <div class="module-card">
+        <div class="module-title">POS</div>
+        <div class="module-stats">
+          <span>2/2 Passed</span>
+          <span class="rate-badge rate-good">100%</span>
+        </div>
+      </div>
+    
+      <div class="module-card">
+        <div class="module-title">Analytics</div>
+        <div class="module-stats">
+          <span>1/1 Passed</span>
+          <span class="rate-badge rate-good">100%</span>
+        </div>
+      </div>
+    
+      <div class="module-card">
+        <div class="module-title">AI</div>
+        <div class="module-stats">
+          <span>1/1 Passed</span>
+          <span class="rate-badge rate-good">100%</span>
+        </div>
+      </div>
+    
+      <div class="module-card">
+        <div class="module-title">Regression</div>
+        <div class="module-stats">
+          <span>1/1 Passed</span>
+          <span class="rate-badge rate-good">100%</span>
+        </div>
+      </div>
+    
+    </div>
+  </div>
+
+  <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem;">Execution Details</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Test ID</th>
+        <th>Module</th>
+        <th>Test Scenario</th>
+        <th>Expected Result</th>
+        <th>Actual Result</th>
+        <th>Status</th>
+        <th>Duration</th>
+        <th>Error Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td class="font-mono">AUTH-001</td>
+        <td><span class="category-pill">Auth</span></td>
+        <td><strong>Display login page with email and password inputs</strong></td>
+        <td>Email and password fields are visible</td>
+        <td>Verified input fields</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>320 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">AUTH-002</td>
+        <td><span class="category-pill">Auth</span></td>
+        <td><strong>Validate empty email submission</strong></td>
+        <td>Email is required error banner shown</td>
+        <td>Validation message displayed</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>180 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">AUTH-003</td>
+        <td><span class="category-pill">Auth</span></td>
+        <td><strong>Validate incorrect email format</strong></td>
+        <td>Enter a valid email error banner shown</td>
+        <td>Format error displayed</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>195 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">AUTH-004</td>
+        <td><span class="category-pill">Auth</span></td>
+        <td><strong>Invalid credentials rejected</strong></td>
+        <td>Invalid email or password error banner shown</td>
+        <td>API rejection banner displayed</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>1250 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">AUTH-005</td>
+        <td><span class="category-pill">Auth</span></td>
+        <td><strong>Toggle Forgot Password view</strong></td>
+        <td>Form switches to Reset Password view</td>
+        <td>Header changed to Reset Password</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>210 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">AUTH-006</td>
+        <td><span class="category-pill">Auth</span></td>
+        <td><strong>Navigate to Signup view</strong></td>
+        <td>Form switches to Create Account view</td>
+        <td>Signup screen loaded</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>240 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">DASH-001</td>
+        <td><span class="category-pill">Dashboard</span></td>
+        <td><strong>Load application shell with KPI metrics</strong></td>
+        <td>Total Sales, Active SKUs, and Expiry Alerts visible</td>
+        <td>KPI cards loaded with positive values</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>450 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">DASH-002</td>
+        <td><span class="category-pill">Dashboard</span></td>
+        <td><strong>Verify branding and page title</strong></td>
+        <td>Page title contains StockSmart</td>
+        <td>Title verified</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>95 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">DASH-003</td>
+        <td><span class="category-pill">Dashboard</span></td>
+        <td><strong>Browser console log cleanliness</strong></td>
+        <td>Zero critical unhandled exceptions</td>
+        <td>Zero fatal errors found</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>110 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">INV-001</td>
+        <td><span class="category-pill">Inventory</span></td>
+        <td><strong>Search products by query</strong></td>
+        <td>Product catalog filters to matching rows</td>
+        <td>Table filtered to query</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>520 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">INV-002</td>
+        <td><span class="category-pill">Inventory</span></td>
+        <td><strong>Inspect product stock level and threshold badges</strong></td>
+        <td>Normal, Low Stock, or Critical badges rendered</td>
+        <td>Stock badges verified</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>340 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">POS-001</td>
+        <td><span class="category-pill">POS</span></td>
+        <td><strong>POS terminal catalog item selection</strong></td>
+        <td>Product added to checkout cart</td>
+        <td>Cart updated with 1 item</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>410 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">POS-002</td>
+        <td><span class="category-pill">POS</span></td>
+        <td><strong>Cart quantity adjustment and total computation</strong></td>
+        <td>Line total and tax recalculate dynamically</td>
+        <td>Totals verified accurately</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>380 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">ANA-001</td>
+        <td><span class="category-pill">Analytics</span></td>
+        <td><strong>Render demand forecasting chart</strong></td>
+        <td>SVG chart mounts with historical and predicted points</td>
+        <td>Recharts container rendered</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>620 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">AI-001</td>
+        <td><span class="category-pill">AI</span></td>
+        <td><strong>AI Retail Assistant briefing display</strong></td>
+        <td>Morning briefing summary renders with actionable insights</td>
+        <td>Briefing card mounted</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>780 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+      <tr>
+        <td class="font-mono">REG-001</td>
+        <td><span class="category-pill">Regression</span></td>
+        <td><strong>End-to-end retail journey smoke</strong></td>
+        <td>Auth -> Dashboard -> Inventory -> POS transitions without failure</td>
+        <td>Full workflow completed cleanly</td>
+        <td><span class="status-pill status-pass">PASS</span></td>
+        <td>2850 ms</td>
+        <td class="error-cell">-</td>
+      </tr>
+    
+    </tbody>
+  </table>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "stocksmart-mobile-appium",
+  "version": "1.0.0",
+  "description": "Independent Appium Mobile E2E Testing Framework for StockSmart AI Android Application",
+  "main": "config/wdio.conf.js",
+  "type": "module",
+  "scripts": {
+    "test": "wdio run config/wdio.conf.js",
+    "test:smoke": "SPEC=tests/smoke.test.js wdio run config/wdio.conf.js",
+    "test:auth": "SPEC=tests/auth.test.js wdio run config/wdio.conf.js",
+    "test:inventory": "SPEC=tests/inventory.test.js wdio run config/wdio.conf.js",
+    "test:pos": "SPEC=tests/pos.test.js wdio run config/wdio.conf.js",
+    "test:barcode": "SPEC=tests/barcode.test.js wdio run config/wdio.conf.js"
+  },
+  "dependencies": {
+    "@wdio/appium-service": "^9.2.8",
+    "@wdio/cli": "^9.2.8",
+    "@wdio/local-runner": "^9.2.8",
+    "@wdio/mocha-framework": "^9.2.8",
+    "@wdio/spec-reporter": "^9.2.8",
+    "appium": "^2.16.2",
+    "appium-uiautomator2-driver": "^3.9.11",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "stocksmart-performance",
+  "version": "1.0.0",
+  "description": "k6 Performance & Baseline Load Testing Suite for StockSmart AI",
+  "main": "parseK6Summary.js",
+  "type": "module",
+  "scripts": {
+    "test:load": "k6 run --summary-export=reports/summary.json load-test.js && node parseK6Summary.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0"
+  }
+}

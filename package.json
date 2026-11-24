@@ -12,7 +12,11 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "test": "vitest run",
-    "test:load": "k6 run --summary-export=summary.json scripts/load-test.js && node scripts/parseK6Summary.js"
+    "test:load": "k6 run --summary-export=summary.json scripts/load-test.js && node scripts/parseK6Summary.js",
+    "test:e2e": "cd testing/web-e2e && npm test",
+    "test:mobile": "cd testing/mobile-appium && npm test",
+    "test:security": "cd testing/security && npm run audit",
+    "test:perf": "cd testing/performance && npm run test:load"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

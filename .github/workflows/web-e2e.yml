@@ -8,11 +8,18 @@ on:
         required: false
         default: 'http://localhost:3000'
   push:
+    branches: [main]
     paths:
       - 'src/**'
       - 'server.ts'
-      - 'BrainBattleE2E/**'
+      - 'testing/web-e2e/**'
       - '.github/workflows/web-e2e.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'server.ts'
+      - 'testing/web-e2e/**'
 
 jobs:
   selenium-e2e:
@@ -27,12 +34,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
       - name: Install Root Dependencies
         run: npm ci
 
       - name: Install Selenium E2E Dependencies
-        working-directory: ./BrainBattleE2E
+        working-directory: ./testing/web-e2e
         run: npm ci || npm install
 
       - name: Setup Chrome & ChromeDriver
@@ -60,12 +68,18 @@ jobs:
       - name: Execute Selenium E2E Tests
         id: run_e2e
         continue-on-error: true
-        working-directory: ./BrainBattleE2E
+        working-directory: ./testing/web-e2e
         env:
           BASE_URL: ${{ github.event.inputs.test_base_url || 'http://localhost:3000' }}
           HEADLESS: "true"
         run: |
           npm test
+
+      - name: Generate Reports if not already emitted
+        if: always()
+        working-directory: ./testing/web-e2e
+        run: |
+          node generateReports.js
 
       - name: Upload Test Report Artifacts (Excel, HTML & Screenshots)
         uses: actions/upload-artifact@v4
@@ -73,12 +87,23 @@ jobs:
         with:
           name: selenium-web-e2e-reports
           path: |
-            BrainBattleE2E/reports/excel/Web_Test_Report.xlsx
-            BrainBattleE2E/reports/html/execution-report.html
-            BrainBattleE2E/reports/screenshots/
-            coverage/web-test-coverage-matrix.xlsx
+            testing/web-e2e/reports/Selenium_Test_Report.xlsx
+            testing/web-e2e/reports/Selenium_HTML_Report.html
+            testing/web-e2e/reports/screenshots/
 
-      - name: Verify E2E Execution Status
+      - name: Publish Step Summary
+        if: always()
+        run: |
+          echo "## 🌐 Selenium Web E2E Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Target URL | ${{ github.event.inputs.test_base_url || 'http://localhost:3000' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Browser Engine | Google Chrome (Headless) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Outcome | ${{ steps.run_e2e.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Excel Report | \`Selenium_Test_Report.xlsx\` (8 Worksheets) |" >> $GITHUB_STEP_SUMMARY
+          echo "| HTML Report | \`Selenium_HTML_Report.html\` |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Verify E2E Execution Quality Gate
         if: steps.run_e2e.outcome != 'success'
         run: |
           echo "::error::Selenium Web E2E test execution failed. Inspect HTML and Excel reports in artifacts."
